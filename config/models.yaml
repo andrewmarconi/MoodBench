@@ -2,79 +2,78 @@
 # Each model has its own LoRA hyperparameters and target modules
 
 models:
-  # Large Language Models (3B+)
-  - name: "microsoft/Phi-3-mini-4k-instruct"
-    alias: "Phi-3-mini"
-    size_params: "3.8B"
+  # Medium Language Models (100M-500M) - Mac M4 Compatible
+  - name: "microsoft/DialoGPT-small"
+    alias: "DialoGPT-small"
+    size_params: "117M"
     architecture: "decoder-only"
     lora:
       rank: 8
       alpha: 16
       dropout: 0.05
-      target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
+      target_modules: ["c_attn"]
     recommended_batch_size:
-      cuda: 4
-      mps: 2
-      cpu: 1
+      cuda: 16
+      mps: 8
+      cpu: 4
     memory_requirements:
-      cuda_4bit: "4GB"
-      mps_fp32: "16GB"
-      cpu: "32GB"
+      cuda_4bit: "1GB"
+      mps_fp32: "4GB"
+      cpu: "8GB"
 
-  # Small Language Models (1-2B)
-  - name: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-    alias: "TinyLlama-1.1B"
-    size_params: "1.1B"
+  - name: "distilgpt2"
+    alias: "DistilGPT2"
+    size_params: "82M"
     architecture: "decoder-only"
     lora:
       rank: 8
       alpha: 16
       dropout: 0.05
-      target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
+      target_modules: ["c_attn"]
+    recommended_batch_size:
+      cuda: 16
+      mps: 8
+      cpu: 4
+    memory_requirements:
+      cuda_4bit: "0.8GB"
+      mps_fp32: "3GB"
+      cpu: "6GB"
+
+  - name: "EleutherAI/pythia-160m"
+    alias: "Pythia-160m"
+    size_params: "160M"
+    architecture: "decoder-only"
+    lora:
+      rank: 8
+      alpha: 16
+      dropout: 0.05
+      target_modules: ["query_key_value"]
+    recommended_batch_size:
+      cuda: 16
+      mps: 8
+      cpu: 4
+    memory_requirements:
+      cuda_4bit: "1.2GB"
+      mps_fp32: "4GB"
+      cpu: "8GB"
+
+  - name: "EleutherAI/pythia-410m"
+    alias: "Pythia-410m"
+    size_params: "410M"
+    architecture: "decoder-only"
+    lora:
+      rank: 8
+      alpha: 16
+      dropout: 0.05
+      target_modules: ["query_key_value"]
     recommended_batch_size:
       cuda: 8
       mps: 4
       cpu: 2
     memory_requirements:
       cuda_4bit: "2GB"
-      mps_fp32: "8GB"
-      cpu: "16GB"
-
-  - name: "Qwen/Qwen2.5-1.5B"
-    alias: "Qwen2.5-1.5B"
-    size_params: "1.5B"
-    architecture: "decoder-only"
-    lora:
-      rank: 8
-      alpha: 16
-      dropout: 0.05
-      target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
-    recommended_batch_size:
-      cuda: 8
-      mps: 4
-      cpu: 2
-    memory_requirements:
-      cuda_4bit: "2.5GB"
-      mps_fp32: "10GB"
-      cpu: "20GB"
-
-  - name: "HuggingFaceTB/SmolLM2-1.7B"
-    alias: "SmolLM2-1.7B"
-    size_params: "1.7B"
-    architecture: "decoder-only"
-    lora:
-      rank: 8
-      alpha: 16
-      dropout: 0.05
-      target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
-    recommended_batch_size:
-      cuda: 8
-      mps: 4
-      cpu: 2
-    memory_requirements:
-      cuda_4bit: "2.5GB"
-      mps_fp32: "10GB"
-      cpu: "20GB"
+      mps_fp32: "6GB"
+      cpu: "12GB"
 
   - name: "google/gemma-3-270m"
     alias: "Gemma-2-2B"
@@ -103,7 +102,7 @@ models:
       rank: 8
       alpha: 16
       dropout: 0.05
-      target_modules: ["q_lin", "v_lin"]  # DistilBERT uses different naming
+      target_modules: ["q_lin", "v_lin"]
     recommended_batch_size:
       cuda: 32
       mps: 16
@@ -121,7 +120,7 @@ models:
       rank: 8
       alpha: 16
       dropout: 0.05
-      target_modules: ["query", "value"]  # RoBERTa uses different naming
+      target_modules: ["query", "value"]
     recommended_batch_size:
       cuda: 32
       mps: 16
@@ -312,24 +311,6 @@ models:
       cuda_4bit: "0.6GB"
       mps_fp32: "2GB"
       cpu: "4GB"
-
-  - name: "EleutherAI/pythia-160m"
-    alias: "Pythia-160m"
-    size_params: "160M"
-    architecture: "decoder-only"
-    lora:
-      rank: 8
-      alpha: 16
-      dropout: 0.05
-      target_modules: ["query_key_value"]
-    recommended_batch_size:
-      cuda: 32
-      mps: 16
-      cpu: 8
-    memory_requirements:
-      cuda_4bit: "1.2GB"
-      mps_fp32: "4GB"
-      cpu: "8GB"
 
 # Global LoRA defaults (used if model-specific config not provided)
 lora_defaults:
