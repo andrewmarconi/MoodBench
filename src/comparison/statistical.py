@@ -71,7 +71,7 @@ class StatisticalAnalyzer:
             statistic, p_value = ttest_rel(data1, data2, alternative=alternative)
 
             # Calculate effect size (Cohen's d for paired samples)
-            differences = data1 - data2
+            differences = np.array(data1) - np.array(data2)
             cohens_d = np.mean(differences) / np.std(differences, ddof=1)
 
             # Interpret effect size
@@ -142,7 +142,7 @@ class StatisticalAnalyzer:
         if data1 is None or data2 is None:
             return {"error": f"No paired data found for {model1} vs {model2} on {metric}"}
 
-        if len(data1) < 6:  # Wilcoxon test minimum
+        if len(np.array(data1)) < 6:  # Wilcoxon test minimum
             return {"error": "Insufficient data for Wilcoxon test (need at least 6 pairs)"}
 
         try:
@@ -198,7 +198,8 @@ class StatisticalAnalyzer:
         if metric_col not in model_data.columns:
             return {"error": f"Metric '{metric}' not found for model '{model_name}'"}
 
-        data = model_data[metric_col].dropna().to_numpy()
+        data_series = model_data[metric_col].dropna()
+        data = np.array(data_series.values, dtype=float)
 
         if len(data) < 2:
             return {"error": "Insufficient data for bootstrap CI (need at least 2 observations)"}
@@ -365,11 +366,11 @@ class StatisticalAnalyzer:
         paired_data = []
 
         for dataset in self.results["dataset"].unique():
-            val1 = data1_df[data1_df["dataset"] == dataset][metric_col]
-            val2 = data2_df[data2_df["dataset"] == dataset][metric_col]
+            val1_series = data1_df[data1_df["dataset"] == dataset][metric_col]
+            val2_series = data2_df[data2_df["dataset"] == dataset][metric_col]
 
-            if len(val1) > 0 and len(val2) > 0:
-                paired_data.append((float(val1.iloc[0]), float(val2.iloc[0])))
+            if len(val1_series) > 0 and len(val2_series) > 0:
+                paired_data.append((float(val1_series.iloc[0]), float(val2_series.iloc[0])))
 
         if not paired_data:
             return None, None
@@ -445,6 +446,22 @@ class StatisticalAnalyzer:
                 "required_sample_size": int(np.ceil(n_approx)),
                 "method": "approximate",
             }
+
+
+def effect_size_cohens_d(data1: np.ndarray, data2: np.ndarray) -> float:
+    """
+    Calculate Cohen's d effect size for two samples.
+
+    Args:
+        data1: First sample data
+        data2: Second sample data
+
+    Returns:
+        float: Cohen's d effect size
+    """
+    diff = np.mean(data1) - np.mean(data2)
+    pooled_std = np.sqrt((np.std(data1, ddof=1) ** 2 + np.std(data2, ddof=1) ** 2) / 2)
+    return diff / pooled_std if pooled_std != 0 else 0.0
 
 
 def print_statistical_results(results: Dict, title: str = "Statistical Test Results") -> None:

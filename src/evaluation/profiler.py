@@ -43,12 +43,56 @@ class MemoryProfiler:
         self.device_type = device.type
         self.initial_memory = None
         self.peak_memory = 0
+        self.memory_history = []  # For temporal tracking
+        self.temporal_tracking = False
 
-    def start(self) -> None:
-        """Start memory profiling."""
+    def start(self, temporal_tracking: bool = False) -> None:
+        """Start memory profiling.
+
+        Args:
+            temporal_tracking: Whether to track memory over time
+        """
         self._reset_peak()
         self.initial_memory = self._get_current_memory()
+        self.temporal_tracking = temporal_tracking
+        if temporal_tracking:
+            self.memory_history = []
         logger.info(f"Started memory profiling on {self.device_type}")
+
+    def record_snapshot(self, stage: str = "") -> None:
+        """Record a memory snapshot for temporal tracking.
+
+        Args:
+            stage: Stage name for the snapshot
+        """
+        if not self.temporal_tracking:
+            return
+
+        import time
+
+        current_memory = self._get_current_memory()
+        snapshot = {
+            "timestamp": time.time(),
+            "stage": stage,
+            "memory_bytes": current_memory,
+            "memory_gb": current_memory / (1024**3),
+        }
+
+        # Add device-specific stats
+        if self.device_type == "cuda":
+            snapshot.update(self._get_cuda_stats())
+        elif self.device_type == "cpu":
+            snapshot.update(self._get_cpu_stats())
+
+        self.memory_history.append(snapshot)
+
+    def get_memory_history(self) -> List[Dict]:
+        """Get memory history for temporal analysis.
+
+        Returns:
+            List[Dict]: List of memory snapshots over time
+        """
+        return self.memory_history.copy()
 
     def get_stats(self) -> Dict[str, float]:
         """
@@ -137,7 +181,7 @@ class MemoryProfiler:
         max_allocated = torch.cuda.max_memory_allocated(self.device)
         max_reserved = torch.cuda.max_memory_reserved(self.device)
 
-        return {
+        stats = {
             "allocated_bytes": float(allocated),
             "allocated_gb": allocated / (1024**3),
             "reserved_bytes": float(reserved),
@@ -147,6 +191,46 @@ class MemoryProfiler:
             "peak_reserved_bytes": float(max_reserved),
             "peak_reserved_gb": max_reserved / (1024**3),
         }
+
+        # Add hardware utilization metrics if pynvml is available
+        try:
+            import pynvml
+
+            pynvml.nvmlInit()
+
+            device_idx = self.device.index if self.device.index is not None else 0
+            handle = pynvml.nvmlDeviceGetHandleByIndex(device_idx)
+
+            # GPU utilization
+            util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+            stats["gpu_utilization_percent"] = float(util.gpu)
+            stats["memory_utilization_percent"] = float(util.memory)
+
+            # Power usage
+            try:
+                power = pynvml.nvmlDeviceGetPowerUsage(handle)
+                power_limit = pynvml.nvmlDeviceGetPowerManagementLimit(handle)
+                stats["power_usage_watts"] = power / 1000.0  # Convert from mW to W
+                stats["power_limit_watts"] = power_limit / 1000.0
+                stats["power_usage_percent"] = (power / power_limit) * 100.0
+            except:
+                pass  # Power monitoring may not be available
+
+            # Temperature
+            try:
+                temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+                stats["temperature_celsius"] = float(temp)
+            except:
+                pass
+
+            pynvml.nvmlShutdown()
+
+        except ImportError:
+            logger.debug("pynvml not available, skipping GPU hardware metrics")
+        except Exception as e:
+            logger.debug(f"Could not get GPU hardware metrics: {e}")
+
+        return stats
 
     def _get_mps_stats(self) -> Dict[str, float]:
         """Get MPS-specific memory stats."""
@@ -182,7 +266,14 @@ class MemoryProfiler:
             virtual_mem = psutil.virtual_memory()
             stats["system_total_gb"] = virtual_mem.total / (1024**3)
             stats["system_available_gb"] = virtual_mem.available / (1024**3)
+            stats["system_used_gb"] = virtual_mem.used / (1024**3)
             stats["system_percent"] = virtual_mem.percent
+
+            # Swap memory
+            swap_mem = psutil.swap_memory()
+            stats["swap_total_gb"] = swap_mem.total / (1024**3)
+            stats["swap_used_gb"] = swap_mem.used / (1024**3)
+            stats["swap_percent"] = swap_mem.percent
 
         except ImportError:
             logger.warning("psutil not available, cannot get detailed CPU stats")

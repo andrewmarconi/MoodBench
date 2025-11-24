@@ -207,6 +207,16 @@ class BenchmarkRunner:
         dataset_size = len(all_predictions)
         throughput = dataset_size / sum(latencies)
 
+        # Calculate latency percentiles
+        latency_stats = {
+            "latency_mean_ms": mean_latency * 1000,
+            "latency_median_ms": np.median(latencies) * 1000,
+            "latency_p95_ms": np.percentile(latencies, 95) * 1000,
+            "latency_p99_ms": np.percentile(latencies, 99) * 1000,
+            "latency_ttft_ms": latencies[0] * 1000 if len(latencies) > 0 else None,
+            "throughput_samples_per_sec": throughput,
+        }
+
         # Build result
         result = {
             "model_name": model_name,
@@ -219,8 +229,8 @@ class BenchmarkRunner:
             if metric in computed_metrics:
                 result[f"metric_{metric}"] = computed_metrics[metric]
 
-        result["latency_mean_ms"] = mean_latency * 1000
-        result["throughput_samples_per_sec"] = throughput
+        # Add latency metrics
+        result.update(latency_stats)
 
         logger.info(f"Evaluation completed for {model_name} on {dataset_name}")
         return result
@@ -333,60 +343,52 @@ def evaluate_model(
 
 
 def benchmark_models(
-    models_dir: str,
-    dataset_name: str,
+    models: List[str],
+    datasets: List[str],
+    checkpoints_dir: str,
     output_dir: str,
     device: str = "auto",
 ) -> Dict:
     """
-    Run benchmark on all models in directory.
+    Run benchmark on selected models and datasets.
 
     Args:
-        models_dir: Directory containing model checkpoints
-        dataset_name: Name of the dataset
+        models: List of model names to benchmark
+        datasets: List of dataset names to evaluate on
+        checkpoints_dir: Directory containing model checkpoints
         output_dir: Output directory for results
         device: Device to use
 
     Returns:
         Dict: Benchmark results
     """
-    from pathlib import Path
-
-    models_dir_path = Path(models_dir)
-    if not models_dir_path.exists():
-        logger.warning(f"Models directory {models_dir} does not exist")
-        return {}
-
-    # Find all model checkpoints (simplified - just look for directories)
-    model_dirs = [d for d in models_dir_path.iterdir() if d.is_dir()]
-    model_names = [d.name.split("_")[0] for d in model_dirs]  # Extract model name from dir name
-
-    if not model_names:
-        logger.warning(f"No model checkpoints found in {models_dir}")
-        return {}
-
-    logger.info(f"Found models: {model_names}")
+    logger.info(f"Benchmarking models: {models} on datasets: {datasets}")
 
     runner = BenchmarkRunner(results_dir=output_dir, device=device)
 
     # Run benchmark
     results = runner.run_benchmark(
-        models=model_names,
-        datasets=[dataset_name],
+        models=models,
+        datasets=datasets,
         metrics=["accuracy", "f1", "latency_mean_ms", "throughput_samples_per_sec"],
     )
 
     # Save results
     import json
+    from pathlib import Path
 
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    result_file = output_path / f"benchmark_{dataset_name}.json"
+    # Create a combined result file name
+    models_str = "_".join(models)
+    datasets_str = "_".join(datasets)
+    result_file = output_path / f"benchmark_{models_str}_{datasets_str}.json"
+
     with open(result_file, "w") as f:
         json.dump(results, f, indent=2)
 
-        logger.info(f"Benchmark results saved to {result_file}")
+    logger.info(f"Benchmark results saved to {result_file}")
     return results
 
 
@@ -482,12 +484,19 @@ class SpeedBenchmark:
             std_latency = np.std(latencies)
             throughput = batch_size / mean_latency
 
-            results[batch_size] = {
+            # Calculate percentiles
+            latency_stats = {
                 "mean_latency_ms": mean_latency * 1000,
                 "std_latency_ms": std_latency * 1000,
+                "median_latency_ms": np.median(latencies) * 1000,
+                "p95_latency_ms": np.percentile(latencies, 95) * 1000,
+                "p99_latency_ms": np.percentile(latencies, 99) * 1000,
+                "ttft_ms": latencies[0] * 1000 if len(latencies) > 0 else None,
                 "throughput_samples_per_sec": throughput,
                 "batch_size": batch_size,
             }
+
+            results[batch_size] = latency_stats
 
         logger.info("Speed benchmark completed")
         return results
@@ -501,13 +510,13 @@ def print_benchmark_results(results: Dict) -> None:
         results: Benchmark results from SpeedBenchmark
     """
     print("\nBenchmark Results:")
-    print("-" * 80)
+    print("-" * 100)
     print("<10")
-    print("-" * 80)
+    print("-" * 100)
 
     for batch_size, metrics in results.items():
         print("<10")
 
-    print("-" * 80)
+    print("-" * 100)
     print(f"Total benchmark runs: {len(results)} batch sizes tested")
     print()

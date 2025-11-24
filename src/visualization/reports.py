@@ -265,7 +265,7 @@ class ReportGenerator:
                     rankings[metric] = {
                         "rankings": model_rankings_sorted.to_dict(),
                         "best_model": model_rankings_sorted.index[0],
-                        "best_score": float(model_rankings_sorted.iloc[0]),
+                        "best_score": float(model_means.loc[model_rankings_sorted.index[0]]),
                     }
 
         return rankings
@@ -277,12 +277,15 @@ class ReportGenerator:
 
         for metric in metric_cols[:5]:  # Top 5 metrics
             if metric in self.results.columns and "model_name" in self.results.columns:
-                best_idx = self.results[metric].idxmax()
-                best_model = self.results.loc[best_idx, "model_name"]
-                best_score = self.results[metric].max()
+                # Filter out NaN values
+                valid_data = self.results.dropna(subset=[metric])
+                if len(valid_data) > 0:
+                    best_idx = valid_data[metric].idxmax()
+                    best_model = valid_data.loc[best_idx, "model_name"]
+                    best_score = valid_data[metric].max()
 
-                metric_name = metric.replace("metric_", "").replace("_", " ").title()
-                lines.append(f"| {metric_name} | {best_model} | {best_score:.4f} |")
+                    metric_name = metric.replace("metric_", "").replace("_", " ").title()
+                    lines.append(f"| {metric_name} | {best_model} | {best_score:.4f} |")
 
         return "\n".join(lines)
 
@@ -327,14 +330,17 @@ class ReportGenerator:
         """Generate conclusions based on data."""
         lines = ["### Key Findings", ""]
 
+        # Get metric columns
+        metric_cols = [col for col in self.results.columns if col.startswith("metric_")]
+
         # Best overall model
-        if "model_name" in self.results.columns:
-            metric_cols = [col for col in self.results.columns if col.startswith("metric_")]
-            if metric_cols:
-                # Simple ranking based on first metric
-                first_metric = metric_cols[0]
-                best_idx = self.results[first_metric].idxmax()
-                best_model = self.results.loc[best_idx, "model_name"]
+        if "model_name" in self.results.columns and metric_cols:
+            # Simple ranking based on first metric
+            first_metric = metric_cols[0]
+            valid_data = self.results.dropna(subset=[first_metric])
+            if len(valid_data) > 0:
+                best_idx = valid_data[first_metric].idxmax()
+                best_model = valid_data.loc[best_idx, "model_name"]
 
                 lines.extend(
                     [
@@ -515,26 +521,45 @@ def generate_reports(
     output_dir_path = Path(output_dir)
     output_dir_path.mkdir(parents=True, exist_ok=True)
 
-    # Load results - simplified, just load the benchmark file
-    results_file = results_dir_path / "benchmark_imdb.json"
-    if not results_file.exists():
-        logger.warning(f"No results file found at {results_file}")
+    # Find all benchmark result files (files starting with "benchmark_")
+    benchmark_files = list(results_dir_path.glob("benchmark_*.json"))
+
+    if not benchmark_files:
+        logger.warning(f"No benchmark result files found in {results_dir}")
+        logger.info("Run 'emobench benchmark' first to generate results")
         return {}
 
-    with open(results_file, "r") as f:
-        raw_results = json.load(f)
+    logger.info(f"Found {len(benchmark_files)} benchmark result files")
 
-    # Flatten the results for DataFrame
-    flattened_results = []
-    for model, results_list in raw_results.items():
-        for result in results_list:
-            flattened_results.append(result)
+    # Load and combine all results
+    all_flattened_results = []
 
-    if not flattened_results:
-        logger.warning("No results to report")
+    for results_file in benchmark_files:
+        logger.info(f"Loading results from {results_file}")
+        try:
+            with open(results_file, "r") as f:
+                raw_results = json.load(f)
+
+            # Flatten the results for DataFrame
+            for model, results_list in raw_results.items():
+                for result in results_list:
+                    # Add source file info
+                    result["_source_file"] = results_file.name
+                    all_flattened_results.append(result)
+
+        except Exception as e:
+            logger.warning(f"Failed to load {results_file}: {e}")
+            continue
+
+    if not all_flattened_results:
+        logger.warning("No valid results found in any benchmark files")
         return {}
 
-    results_df = pd.DataFrame(flattened_results)
+    logger.info(
+        f"Loaded {len(all_flattened_results)} total results from {len(benchmark_files)} files"
+    )
+
+    results_df = pd.DataFrame(all_flattened_results)
 
     # Create report generator
     generator = ReportGenerator(results_df)
@@ -547,22 +572,35 @@ def generate_reports(
 
     generated_files = {}
 
-    for fmt in formats:
-        if fmt == "json":
-            report = generator.generate_json_report()
-            filename = "emobench_report.json"
-        elif fmt == "csv":
-            report = generator.generate_csv_report()
-            filename = "emobench_report.csv"
-        elif fmt == "markdown":
-            report = generator.generate_markdown_report()
-            filename = "emobench_report.md"
-        else:
-            continue
+    # Use tqdm for progress tracking
+    from tqdm import tqdm
+    import time
 
-        file_path = output_dir_path / filename
-        generator.save_report(report, file_path, fmt)
-        generated_files[fmt] = file_path
+    with tqdm(total=len(formats), desc="Generating reports", unit="report") as pbar:
+        for fmt in formats:
+            if fmt == "json":
+                logger.info("Generating JSON report...")
+                report = generator.generate_json_report()
+                filename = "emobench_report.json"
+            elif fmt == "csv":
+                logger.info("Generating CSV report...")
+                report = generator.generate_csv_report()
+                filename = "emobench_report.csv"
+            elif fmt == "markdown":
+                logger.info("Generating Markdown report...")
+                report = generator.generate_markdown_report()
+                filename = "emobench_report.md"
+            else:
+                continue
+
+            file_path = output_dir_path / filename
+            generator.save_report(report, file_path, fmt)
+            generated_files[fmt] = file_path
+
+            # Update progress
+            pbar.set_description(f"Generated {fmt.upper()} report")
+            pbar.update(1)
+            time.sleep(0.1)  # Small delay for visual feedback
 
     logger.info(f"Generated {len(generated_files)} reports in {output_dir}")
     return generated_files

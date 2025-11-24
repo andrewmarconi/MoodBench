@@ -98,6 +98,50 @@ class TestMetricsCalculator:
         assert -1 <= metrics["matthews_corrcoef"] <= 1
         assert -1 <= metrics["cohen_kappa"] <= 1
 
+    def test_compute_balanced_accuracy(self, sample_data):
+        """Test balanced accuracy calculation."""
+        predictions, labels, _ = sample_data
+        calculator = MetricsCalculator(num_classes=2)
+
+        metrics = calculator.compute_metrics(predictions, labels)
+
+        assert "balanced_accuracy" in metrics
+        assert 0 <= metrics["balanced_accuracy"] <= 1
+
+    def test_compute_macro_micro_metrics(self):
+        """Test macro and micro averaging for multi-class."""
+        # Create multi-class data
+        np.random.seed(42)
+        n_samples = 100
+        n_classes = 3
+        labels = np.random.randint(0, n_classes, n_samples)
+        predictions = labels.copy()
+        # Add 10% errors
+        error_idx = np.random.choice(n_samples, 10, replace=False)
+        predictions[error_idx] = np.random.randint(0, n_classes, 10)
+
+        calculator = MetricsCalculator(num_classes=n_classes)
+        metrics = calculator.compute_metrics(predictions, labels)
+
+        # Check macro/micro metrics are present
+        assert "macro_f1" in metrics
+        assert "micro_f1" in metrics
+        assert "macro_precision" in metrics
+        assert "micro_precision" in metrics
+        assert "macro_recall" in metrics
+        assert "micro_recall" in metrics
+
+        # All should be between 0 and 1
+        for metric_name in [
+            "macro_f1",
+            "micro_f1",
+            "macro_precision",
+            "micro_precision",
+            "macro_recall",
+            "micro_recall",
+        ]:
+            assert 0 <= metrics[metric_name] <= 1
+
     def test_compute_metrics_complete(self, sample_data):
         """Test complete metrics computation."""
         predictions, labels, probabilities = sample_data

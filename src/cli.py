@@ -23,11 +23,10 @@ def create_parser() -> argparse.ArgumentParser:
         description="EmoBench - Multi-LLM Sentiment Analysis Benchmark Framework",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
+ Examples:
   emobench train --model DistilBERT-base --dataset imdb
   emobench train-all --dataset imdb
-  emobench evaluate --model DistilBERT-base --dataset imdb
-  emobench benchmark --models-dir experiments/checkpoints
+  emobench benchmark --models BERT-tiny DistilBERT-base --datasets imdb sst2
   emobench dashboard
   emobench report --results-dir experiments/results
         """,
@@ -80,43 +79,30 @@ Examples:
         help="Device to use for training (default: auto)",
     )
 
-    # Evaluate command
-    evaluate_parser = subparsers.add_parser("evaluate", help="Evaluate a single trained model")
-    evaluate_parser.add_argument(
-        "--model", "-m", required=True, help="Model name/alias to evaluate"
-    )
-    evaluate_parser.add_argument(
-        "--dataset", "-d", required=True, help="Dataset name to evaluate on"
-    )
-    evaluate_parser.add_argument(
-        "--checkpoint", "-ckpt", type=Path, required=True, help="Path to model checkpoint"
-    )
-    evaluate_parser.add_argument(
-        "--output-dir",
-        "-o",
-        type=Path,
-        help="Output directory for results (default: experiments/results/)",
-    )
-    evaluate_parser.add_argument(
-        "--device",
-        choices=["auto", "cuda", "mps", "cpu"],
-        default="auto",
-        help="Device to use for evaluation (default: auto)",
-    )
-
     # Benchmark command
     benchmark_parser = subparsers.add_parser(
-        "benchmark", help="Run full benchmark suite on trained models"
+        "benchmark", help="Run benchmark on selected models and datasets"
     )
     benchmark_parser.add_argument(
-        "--models-dir",
+        "--models",
         "-m",
+        nargs="+",
+        required=True,
+        help="Model names/aliases to benchmark (space-separated)",
+    )
+    benchmark_parser.add_argument(
+        "--datasets",
+        "-d",
+        nargs="+",
+        required=True,
+        help="Dataset names to benchmark on (space-separated)",
+    )
+    benchmark_parser.add_argument(
+        "--checkpoints-dir",
+        "-c",
         type=Path,
         default=Path("experiments/checkpoints"),
         help="Directory containing trained model checkpoints",
-    )
-    benchmark_parser.add_argument(
-        "--dataset", "-d", required=True, help="Dataset name to benchmark on"
     )
     benchmark_parser.add_argument(
         "--output-dir",
@@ -195,10 +181,6 @@ def main():
             from src.training.cli import train_all_models
 
             train_all_models(args)
-        elif args.command == "evaluate":
-            from src.evaluation.cli import evaluate_model
-
-            evaluate_model(args)
         elif args.command == "benchmark":
             from src.evaluation.cli import benchmark_models
 

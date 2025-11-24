@@ -9,6 +9,7 @@
 
 ## 🚀 Quick Start
 
+### Command Line Interface
 ```bash
 # Install dependencies
 uv sync
@@ -24,11 +25,26 @@ uv run emobench benchmark --dataset amazon
 uv run emobench report --results-dir experiments/results
 ```
 
+### Web Interface (Alternative)
+```bash
+# Install additional dependencies
+uv add gradio
+
+# Launch web UI
+python gradio_app.py
+
+# Open http://localhost:7860 in your browser
+```
+
 ## 📚 Documentation
 
 ### Getting Started
 - **[Quick Reference](docs/QUICK_REFERENCE.md)** - Commands, model lists, and common workflows ⚡ **Start here!**
 - **[Model Configuration Guide](docs/MODEL_CONFIGURATION.md)** - Complete guide to all 18 models and configurations
+
+### User Interfaces
+- **[Gradio Web UI](gradio_app.py)** - Interactive web interface for all EmoBench operations
+- **[Streamlit Dashboard](src/visualization/dashboard.py)** - Advanced visualization and analysis dashboard
 
 ### Technical Details
 - **[CLAUDE.md](CLAUDE.md)** - Architecture, technical implementation, and development guide
@@ -42,8 +58,9 @@ EmoBench is an automated benchmarking framework that fine-tunes, evaluates, and 
 - 🏃 **17 optimized models** from 4M to 410M parameters
 - ⚡ **Fast benchmarking** - Ultra-tiny models train in 5-15 minutes
 - 💾 **Memory efficient** - All models <6GB on Apple Silicon M4
-- 📊 **Comprehensive metrics** - Accuracy, F1, latency, throughput, memory
+- 📊 **Comprehensive metrics** - Accuracy, F1, balanced accuracy, latency percentiles, throughput, memory, statistical significance, robustness
 - 🔧 **Production ready** - CI/CD-friendly, reproducible benchmarks
+- 🌐 **Web Interface** - Interactive Gradio UI for all operations
 
 ## 📊 Available Models
 

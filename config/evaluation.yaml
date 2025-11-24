@@ -14,6 +14,12 @@ metrics:
     - auc_roc
     - matthews_corrcoef
     - balanced_accuracy
+    - macro_f1
+    - micro_f1
+    - macro_precision
+    - micro_precision
+    - macro_recall
+    - micro_recall
 
 # Speed benchmarking
 speed_benchmark:
@@ -143,6 +149,26 @@ error_analysis:
   save_misclassifications: true
   max_examples_per_class: 100
   include_attention_weights: false  # Expensive, disable by default
+
+# Advanced metrics configuration
+advanced_metrics:
+  enabled: true
+  latency_percentiles: [50, 95, 99]
+  statistical_tests:
+    effect_sizes: true
+    confidence_intervals: true
+    multiple_comparison_correction: "bonferroni"
+  memory_profiling:
+    temporal_tracking: true
+    system_memory: true
+  robustness:
+    ood_detection: false
+    fairness_analysis: false
+    uncertainty_quantification: true
+  hardware_metrics:
+    gpu_utilization: true
+    power_consumption: true
+    temperature: true
 
 # Reproducibility
 seed: 42

@@ -10,7 +10,7 @@ Comprehensive metrics computation for sentiment analysis models including:
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 from sklearn.metrics import (
@@ -24,6 +24,7 @@ from sklearn.metrics import (
     average_precision_score,
     matthews_corrcoef,
     cohen_kappa_score,
+    balanced_accuracy_score,
 )
 
 logger = logging.getLogger(__name__)
@@ -90,12 +91,38 @@ class MetricsCalculator:
         """Compute basic classification metrics."""
         avg = "binary" if self.num_classes == 2 else "weighted"
 
-        return {
+        metrics = {
             "accuracy": accuracy_score(labels, predictions),
-            "f1": f1_score(labels, predictions, average=avg, zero_division=0),
-            "precision": precision_score(labels, predictions, average=avg, zero_division=0),
-            "recall": recall_score(labels, predictions, average=avg, zero_division=0),
+            "f1": f1_score(labels, predictions, average=avg, zero_division="warn"),
+            "precision": precision_score(labels, predictions, average=avg, zero_division="warn"),
+            "recall": recall_score(labels, predictions, average=avg, zero_division="warn"),
         }
+
+        # Add balanced accuracy
+        metrics["balanced_accuracy"] = balanced_accuracy_score(labels, predictions)
+
+        # For multi-class, add macro/micro averaging
+        if self.num_classes > 2:
+            metrics["macro_f1"] = f1_score(
+                labels, predictions, average="macro", zero_division="warn"
+            )
+            metrics["micro_f1"] = f1_score(
+                labels, predictions, average="micro", zero_division="warn"
+            )
+            metrics["macro_precision"] = precision_score(
+                labels, predictions, average="macro", zero_division="warn"
+            )
+            metrics["micro_precision"] = precision_score(
+                labels, predictions, average="micro", zero_division="warn"
+            )
+            metrics["macro_recall"] = recall_score(
+                labels, predictions, average="macro", zero_division="warn"
+            )
+            metrics["micro_recall"] = recall_score(
+                labels, predictions, average="micro", zero_division="warn"
+            )
+
+        return metrics
 
     def _compute_confusion_metrics(
         self, predictions: np.ndarray, labels: np.ndarray
@@ -179,13 +206,12 @@ class MetricsCalculator:
         Returns:
             str: Classification report
         """
-        return classification_report(
-            labels, predictions, target_names=target_names, zero_division=0
+        report = classification_report(
+            labels, predictions, target_names=target_names, zero_division="warn", output_dict=False
         )
+        return str(report)
 
-    def get_confusion_matrix(
-        self, predictions: np.ndarray, labels: np.ndarray
-    ) -> np.ndarray:
+    def get_confusion_matrix(self, predictions: np.ndarray, labels: np.ndarray) -> np.ndarray:
         """
         Get confusion matrix.
 
@@ -242,7 +268,7 @@ def compare_metrics(
         Dict: Comparison results with differences and improvements
     """
     if metric_names is None:
-        metric_names = set(metrics1.keys()) & set(metrics2.keys())
+        metric_names = list(set(metrics1.keys()) & set(metrics2.keys()))
 
     comparison = {}
 
@@ -341,7 +367,7 @@ def print_metrics(metrics: Dict[str, float], title: str = "Metrics") -> None:
     # Print any remaining metrics
     remaining = set(metrics.keys()) - set(basic + auc + stat + confusion)
     if remaining:
-        print(f"\nOther Metrics:")
+        print("\nOther Metrics:")
         for key in sorted(remaining):
             value = metrics[key]
             if isinstance(value, (int, float)):
