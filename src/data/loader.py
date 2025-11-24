@@ -6,6 +6,7 @@ Handles loading sentiment analysis datasets from various sources
 """
 
 import logging
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -14,6 +15,8 @@ from datasets import Dataset, DatasetDict, load_dataset
 from transformers import AutoTokenizer
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_DATASETS_CONFIG = os.path.join(os.path.dirname(__file__), "../../config/datasets.yaml")
 
 
 class SentimentDataLoader:
@@ -57,7 +60,7 @@ class SentimentDataLoader:
         self,
         dataset_name: str,
         tokenizer_name: str,
-        config_path: str = "config/datasets.yaml",
+        config_path: str = DEFAULT_DATASETS_CONFIG,
         cache_dir: Optional[str] = None,
     ):
         """
@@ -85,11 +88,10 @@ class SentimentDataLoader:
 
         # Initialize tokenizer (with HF_TOKEN support for gated models)
         import os
+
         hf_token = os.environ.get("HF_TOKEN")
         self.tokenizer = AutoTokenizer.from_pretrained(
-            tokenizer_name,
-            token=hf_token,
-            trust_remote_code=True
+            tokenizer_name, token=hf_token, trust_remote_code=True
         )
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
