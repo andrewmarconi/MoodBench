@@ -29,8 +29,8 @@
 		<stop class="stop1" offset="1" stop-opacity="1" stop-color="rgb(186,236,252)"/>
 	</linearGradient>
 	<linearGradient id="Gradient8" gradientUnits="userSpaceOnUse" x1="448.318" y1="1276.11" x2="445.844" y2="1101.29">
-		<stop class="stop0" offset="0" stop-opacity="1" stop-color="rgb(0,91,203)"/>
-		<stop class="stop1" offset="1" stop-opacity="1" stop-color="rgb(51,188,247)"/>
+		<stop class="stop0" offset="0" stop-opacity="1" stop-color="rgb(51,142,254)"/>
+		<stop class="stop1" offset="1" stop-opacity="1" stop-color="rgb(102,204,255)"/>
 	</linearGradient>
 	<linearGradient id="Gradient9" gradientUnits="userSpaceOnUse" x1="815.081" y1="1205.16" x2="811.889" y2="787.924">
 		<stop class="stop0" offset="0" stop-opacity="1" stop-color="rgb(2,122,137)"/>
