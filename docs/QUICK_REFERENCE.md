@@ -14,14 +14,13 @@
 | DistilRoBERTa | 82M | ⚡⚡⚡ | 2.5GB | Robust distillation |
 | DeBERTa-v3-small | 86M | ⚡⚡⚡ | 2.5GB | State-of-the-art small |
 | BERT-base | 110M | ⚡⚡⚡ | 3GB | Original BERT |
+| DialoGPT-small | 117M | ⚡⚡⚡ | 4GB | Conversational AI |
 | GPT2-small | 124M | ⚡⚡⚡ | 3GB | Generative baseline |
 | RoBERTa-base | 125M | ⚡⚡⚡ | 3GB | Production quality |
 | Pythia-160m | 160M | ⚡⚡ | 4GB | Larger decoder |
+| DistilGPT2 | 82M | ⚡⚡⚡ | 3GB | Fast generation |
 | Gemma-2-2B | 270M | ⚡⚡ | 3GB | Google's efficient |
-| TinyLlama-1.1B | 1.1B | ⚡ | 8GB | Small LLM |
-| Qwen2.5-1.5B | 1.5B | ⚡ | 10GB | Alibaba's LLM |
-| SmolLM2-1.7B | 1.7B | ⚡ | 10GB | HF's optimized LLM |
-| Phi-3-mini | 3.8B | 🐌 | 16GB | High performance |
+| Pythia-410m | 410M | ⚡ | 6GB | Large decoder research |
 
 ## Workflow Overview
 
@@ -204,7 +203,7 @@ uv run python -c "from src.models.model_registry import ModelRegistry; \
 → Ultra-tiny set: **BERT-tiny**, **BERT-mini**, **BERT-small**, **ELECTRA-small**, **MiniLM-L12**
 
 ### I have plenty of memory (16GB+)
-→ Full benchmark: All 18 models including **Phi-3-mini** (3.8B)
+→ Full benchmark: All 17 models including **Pythia-410m** (410M)
 
 ## File Locations
 

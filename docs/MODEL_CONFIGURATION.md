@@ -15,7 +15,7 @@ This guide explains how to configure, add, and manage models in the EmoBench ben
 
 ## Overview
 
-EmoBench supports 18 pre-configured models ranging from 4M to 3.8B parameters, optimized for sentiment analysis benchmarking. Models are configured in `config/models.yaml` with architecture-specific LoRA settings, batch sizes, and memory requirements.
+EmoBench supports 17 pre-configured models ranging from 4M to 410M parameters, optimized for sentiment analysis benchmarking on Mac M4 and other consumer hardware. Models are configured in `config/models.yaml` with architecture-specific LoRA settings, batch sizes, and memory requirements.
 
 ## Configuration Structure
 

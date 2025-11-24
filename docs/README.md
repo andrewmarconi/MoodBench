@@ -200,7 +200,7 @@ See: [QUICK_REFERENCE.md](QUICK_REFERENCE.md) Section: Troubleshooting Quick Fix
 | **Fastest validation** | BERT-tiny |
 | **Quick comparison** | BERT-tiny, BERT-mini, BERT-small |
 | **Production baseline** | DistilBERT-base, RoBERTa-base |
-| **State-of-the-art** | DeBERTa-v3-small, Phi-3-mini |
+| **State-of-the-art** | DeBERTa-v3-small, Gemma-2-2B |
 | **Encoder vs Decoder** | RoBERTa-base vs GPT2-small |
 | **Scaling laws** | BERT-tiny → BERT-mini → BERT-small → BERT-base |
 
@@ -208,7 +208,7 @@ See: [QUICK_REFERENCE.md](QUICK_REFERENCE.md) Section: Troubleshooting Quick Fix
 
 ```
 config/
-├── models.yaml      # Model configurations (18 models)
+├── models.yaml      # Model configurations (17 models)
 ├── datasets.yaml    # Dataset settings (4 datasets)
 ├── training.yaml    # Training hyperparameters
 └── evaluation.yaml  # Evaluation metrics

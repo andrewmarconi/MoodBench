@@ -1,7 +1,7 @@
 ![EmoBench](emobench-logo.svg)
 ## Multi-LLM Sentiment Analysis Benchmark Framework
 
-**Fast, efficient benchmarking of 18 small language models (4M-3.8B parameters) for sentiment analysis using LoRA fine-tuning.**
+**Fast, efficient benchmarking of 17 small language models (4M-410M parameters) for sentiment analysis using LoRA fine-tuning.**
 
 
 
@@ -39,9 +39,9 @@ uv run emobench report --results-dir experiments/results
 EmoBench is an automated benchmarking framework that fine-tunes, evaluates, and compares small language models for sentiment analysis. It uses Parameter-Efficient Fine-Tuning (PEFT) with LoRA to enable efficient training on consumer hardware.
 
 **Key Features:**
-- 🏃 **18 optimized models** from 4M to 3.8B parameters
+- 🏃 **17 optimized models** from 4M to 410M parameters
 - ⚡ **Fast benchmarking** - Ultra-tiny models train in 5-15 minutes
-- 💾 **Memory efficient** - Models <200M use <4GB on Apple Silicon
+- 💾 **Memory efficient** - All models <6GB on Apple Silicon M4
 - 📊 **Comprehensive metrics** - Accuracy, F1, latency, throughput, memory
 - 🔧 **Production ready** - CI/CD-friendly, reproducible benchmarks
 
@@ -51,10 +51,10 @@ EmoBench is an automated benchmarking framework that fine-tunes, evaluates, and 
 `BERT-tiny` `BERT-mini` `ELECTRA-small` `BERT-small` `MiniLM-L12`
 
 ### Tiny (60M-170M) - Production Quality
-`DistilBERT-base` `Pythia-70m` `DistilRoBERTa` `DeBERTa-v3-small` `BERT-base` `GPT2-small` `RoBERTa-base` `Pythia-160m` `Gemma-2-2B`
+`DistilBERT-base` `Pythia-70m` `DistilRoBERTa` `DeBERTa-v3-small` `BERT-base` `GPT2-small` `RoBERTa-base` `Pythia-160m` `DialoGPT-small` `DistilGPT2`
 
-### Small LLMs (1B-4B) - Research Quality
-`TinyLlama-1.1B` `Qwen2.5-1.5B` `SmolLM2-1.7B` `Phi-3-mini`
+### Medium (200M-500M) - Research Quality
+`Gemma-2-2B` `Pythia-410m`
 
 **See [Quick Reference](docs/QUICK_REFERENCE.md) for full details and benchmarks.**
 
