@@ -864,6 +864,78 @@ wheels = [
 ]
 
 [[package]]
+name = "emobench"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "accelerate" },
+    { name = "datasets" },
+    { name = "evaluate" },
+    { name = "kagglehub" },
+    { name = "matplotlib" },
+    { name = "mlflow" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "peft" },
+    { name = "plotly" },
+    { name = "psutil" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "scikit-learn" },
+    { name = "seaborn" },
+    { name = "streamlit" },
+    { name = "tensorboard" },
+    { name = "torch" },
+    { name = "tqdm" },
+    { name = "transformers" },
+]
+
+[package.optional-dependencies]
+cuda = [
+    { name = "bitsandbytes" },
+]
+dev = [
+    { name = "black" },
+    { name = "ipykernel" },
+    { name = "jupyter" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "accelerate", specifier = ">=0.25.0" },
+    { name = "bitsandbytes", marker = "extra == 'cuda'", specifier = ">=0.41.0" },
+    { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
+    { name = "datasets", specifier = ">=2.16.0" },
+    { name = "evaluate", specifier = ">=0.4.1" },
+    { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.25.0" },
+    { name = "jupyter", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "kagglehub", specifier = ">=0.3.13" },
+    { name = "matplotlib", specifier = ">=3.8.0" },
+    { name = "mlflow", specifier = ">=2.9.0" },
+    { name = "numpy", specifier = ">=1.24.0" },
+    { name = "pandas", specifier = ">=2.1.0" },
+    { name = "peft", specifier = ">=0.7.0" },
+    { name = "plotly", specifier = ">=5.18.0" },
+    { name = "psutil", specifier = ">=5.9.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
+    { name = "scikit-learn", specifier = ">=1.3.0" },
+    { name = "seaborn", specifier = ">=0.13.0" },
+    { name = "streamlit", specifier = ">=1.29.0" },
+    { name = "tensorboard", specifier = ">=2.15.0" },
+    { name = "torch", specifier = ">=2.1.0" },
+    { name = "tqdm", specifier = ">=4.66.0" },
+    { name = "transformers", specifier = ">=4.36.0" },
+]
+provides-extras = ["cuda", "dev"]
+
+[[package]]
 name = "evaluate"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -3759,78 +3831,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/fd/3a/aec9b02217bb79b87
 wheels = [
     { url = "https://files.pythonhosted.org/packages/40/b0/4562db6223154aa4e22f939003cb92514c79f3d4dccca3444253fd17f902/Send2Trash-1.8.3-py3-none-any.whl", hash = "sha256:0c31227e0bd08961c7665474a3d1ef7193929fedda4233843689baa056be46c9", size = 18072, upload-time = "2024-04-07T00:01:07.438Z" },
 ]
-
-[[package]]
-name = "senticompare"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "accelerate" },
-    { name = "datasets" },
-    { name = "evaluate" },
-    { name = "kagglehub" },
-    { name = "matplotlib" },
-    { name = "mlflow" },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "peft" },
-    { name = "plotly" },
-    { name = "psutil" },
-    { name = "python-dotenv" },
-    { name = "pyyaml" },
-    { name = "scikit-learn" },
-    { name = "seaborn" },
-    { name = "streamlit" },
-    { name = "tensorboard" },
-    { name = "torch" },
-    { name = "tqdm" },
-    { name = "transformers" },
-]
-
-[package.optional-dependencies]
-cuda = [
-    { name = "bitsandbytes" },
-]
-dev = [
-    { name = "black" },
-    { name = "ipykernel" },
-    { name = "jupyter" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "accelerate", specifier = ">=0.25.0" },
-    { name = "bitsandbytes", marker = "extra == 'cuda'", specifier = ">=0.41.0" },
-    { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
-    { name = "datasets", specifier = ">=2.16.0" },
-    { name = "evaluate", specifier = ">=0.4.1" },
-    { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.25.0" },
-    { name = "jupyter", marker = "extra == 'dev'", specifier = ">=1.0.0" },
-    { name = "kagglehub", specifier = ">=0.3.13" },
-    { name = "matplotlib", specifier = ">=3.8.0" },
-    { name = "mlflow", specifier = ">=2.9.0" },
-    { name = "numpy", specifier = ">=1.24.0" },
-    { name = "pandas", specifier = ">=2.1.0" },
-    { name = "peft", specifier = ">=0.7.0" },
-    { name = "plotly", specifier = ">=5.18.0" },
-    { name = "psutil", specifier = ">=5.9.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
-    { name = "python-dotenv", specifier = ">=1.2.1" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
-    { name = "scikit-learn", specifier = ">=1.3.0" },
-    { name = "seaborn", specifier = ">=0.13.0" },
-    { name = "streamlit", specifier = ">=1.29.0" },
-    { name = "tensorboard", specifier = ">=2.15.0" },
-    { name = "torch", specifier = ">=2.1.0" },
-    { name = "tqdm", specifier = ">=4.66.0" },
-    { name = "transformers", specifier = ">=4.36.0" },
-]
-provides-extras = ["cuda", "dev"]
 
 [[package]]
 name = "setuptools"

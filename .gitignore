@@ -36,6 +36,9 @@ mlruns/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
+# Notebook data cache (datasets downloaded during notebook execution)
+notebooks/data/
+
 # IDE settings
 .vscode/
 .idea/
