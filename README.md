@@ -1,6 +1,9 @@
-# EmoBench - Multi-LLM Sentiment Analysis Benchmark Framework
+![EmoBench](emobench-logo.svg)
+## Multi-LLM Sentiment Analysis Benchmark Framework
 
 **Fast, efficient benchmarking of 18 small language models (4M-3.8B parameters) for sentiment analysis using LoRA fine-tuning.**
+
+
 
 ---
 
