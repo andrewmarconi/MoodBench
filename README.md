@@ -10,9 +10,12 @@
 # Install dependencies
 uv sync
 
-# Run ultra-fast benchmark (1 hour, 5 models)
+# Train models (1 hour, 5 models)
 uv run emobench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini BERT-small ELECTRA-small MiniLM-L12
+
+# Evaluate models
+uv run emobench benchmark --dataset amazon
 
 # View results
 uv run emobench report --results-dir experiments/results

@@ -23,6 +23,22 @@
 | SmolLM2-1.7B | 1.7B | ⚡ | 10GB | HF's optimized LLM |
 | Phi-3-mini | 3.8B | 🐌 | 16GB | High performance |
 
+## Workflow Overview
+
+EmoBench follows a 3-step workflow:
+
+1. **Train** → Trains models and saves checkpoints to `experiments/checkpoints/`
+2. **Evaluate/Benchmark** → Runs evaluation and saves metrics to `experiments/results/`
+3. **Report/Dashboard** → Visualizes and compares results
+
+**Commands:**
+- `train` - Train a single model
+- `train-all` - Train multiple models in sequence
+- `evaluate` - Evaluate one specific checkpoint
+- `benchmark` - Evaluate ALL checkpoints in a directory
+- `report` - Generate comparison reports (CSV, JSON, Markdown)
+- `dashboard` - Launch interactive Streamlit dashboard
+
 ## Common Commands
 
 ### Train Single Model
@@ -34,6 +50,28 @@ uv run emobench train --model DistilBERT-base --dataset amazon --device=mps
 ```bash
 uv run emobench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini DistilBERT-base
+```
+
+### Evaluate Single Model
+```bash
+uv run emobench evaluate --model BERT-tiny --dataset amazon \
+  --checkpoint experiments/checkpoints/BERT-tiny_amazon
+```
+
+### Benchmark All Models
+```bash
+uv run emobench benchmark --dataset amazon \
+  --models-dir experiments/checkpoints --output-dir experiments/results
+```
+
+### Generate Reports
+```bash
+uv run emobench report --results-dir experiments/results --format all
+```
+
+### Launch Dashboard
+```bash
+uv run emobench dashboard --results-dir experiments/evaluation
 ```
 
 ### Quick Test (Small Dataset)
@@ -219,12 +257,18 @@ uv run emobench train --verbose
      --models BERT-tiny BERT-mini BERT-small ELECTRA-small MiniLM-L12
    ```
 
-3. **Analyze results:** Generate comparison report
+3. **Evaluate trained models:** Run benchmark suite
+   ```bash
+   uv run emobench benchmark --dataset amazon \
+     --models-dir experiments/checkpoints --output-dir experiments/results
+   ```
+
+4. **Analyze results:** Generate comparison report
    ```bash
    uv run emobench report --results-dir experiments/results
    ```
 
-4. **Expand benchmark:** Add more models as needed
+5. **Expand benchmark:** Add more models as needed
    ```bash
    uv run emobench train-all --dataset amazon --device=mps \
      --models DistilBERT-base DistilRoBERTa DeBERTa-v3-small RoBERTa-base

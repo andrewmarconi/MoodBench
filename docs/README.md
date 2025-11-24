@@ -104,11 +104,14 @@ Located in the root directory:
 export EMOBENCH_TEST_MODE=1
 uv run emobench train --model BERT-tiny --dataset imdb --device=mps
 
-# 2. Ultra-fast benchmark (1 hour)
+# 2. Train models (1 hour)
 uv run emobench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini BERT-small ELECTRA-small MiniLM-L12
 
-# 3. Analyze results
+# 3. Evaluate models
+uv run emobench benchmark --dataset amazon
+
+# 4. Analyze results
 uv run emobench report --results-dir experiments/results
 ```
 
