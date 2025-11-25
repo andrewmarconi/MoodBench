@@ -14,6 +14,7 @@ import json
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import numpy as np
 
 # Check if gradio is available
 try:
@@ -351,8 +352,106 @@ def create_dashboard_summary(results_df):
     return summary
 
 
+def create_training_matrix():
+    """Create an HTML table showing trained model-dataset combinations."""
+    checkpoints_dir = Path("experiments/checkpoints")
+
+    # Get all available models and datasets from the constants
+    all_models = DEFAULT_MODELS
+    all_datasets = DEFAULT_DATASETS
+
+    # Check which combinations have been trained
+    trained_combinations = {}
+
+    if checkpoints_dir.exists():
+        for item in checkpoints_dir.iterdir():
+            if item.is_dir():
+                # Parse model_dataset from directory name
+                dir_name = item.name
+                if "_" in dir_name:
+                    parts = dir_name.split("_", 1)  # Split only on first underscore
+                    if len(parts) == 2:
+                        model, dataset = parts
+                        # Check if final checkpoint exists
+                        final_checkpoint = item / "final"
+                        if final_checkpoint.exists():
+                            trained_combinations[(model, dataset)] = True
+
+    # Create HTML table
+    html = """
+    <style>
+        .training-matrix {
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 14px;
+            width: 100%;
+        }
+        .training-matrix th, .training-matrix td {
+            border: 1px solid var(--border-color-primary, #e5e7eb);
+            padding: 8px 12px;
+            text-align: center;
+        }
+        .training-matrix th {
+            background-color: var(--background-fill-secondary, #f9fafb);
+            font-weight: bold;
+            color: var(--body-text-color, #111827);
+        }
+        .training-matrix .model-header {
+            background-color: var(--background-fill-primary, #ffffff);
+            font-weight: 600;
+        }
+        .trained {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+        .not-trained {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+        .status-icon {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        @media (prefers-color-scheme: dark) {
+            .trained {
+                background-color: rgba(34, 197, 94, 0.2);
+                color: #4ade80;
+            }
+            .not-trained {
+                background-color: rgba(239, 68, 68, 0.2);
+                color: #f87171;
+            }
+        }
+    </style>
+    <table class="training-matrix">
+        <thead>
+            <tr>
+                <th class="model-header">Model ↓ / Dataset →</th>
+    """
+
+    # Add dataset headers
+    for dataset in all_datasets:
+        html += f"<th>{dataset}</th>"
+    html += "</tr></thead><tbody>"
+
+    # Add rows for each model
+    for model in all_models:
+        html += f"<tr><td class='model-header'>{model}</td>"
+        for dataset in all_datasets:
+            is_trained = (model, dataset) in trained_combinations
+            status_class = "trained" if is_trained else "not-trained"
+            status_icon = "✅" if is_trained else "❌"
+            status_text = "Trained" if is_trained else "Not Trained"
+            html += f'<td class="{status_class}" title="{model} on {dataset}: {status_text}"><span class="status-icon">{status_icon}</span></td>'
+        html += "</tr>"
+
+    html += "</tbody></table>"
+
+    return html
+
+
 def create_scatter_plot(results_df):
-    """Create a scatter plot of accuracy vs latency."""
+    """Create a scatter plot of accuracy vs latency with individual runs and model means."""
     if results_df.empty or "metric_accuracy" not in results_df.columns:
         # Return empty figure
         fig = go.Figure()
@@ -371,26 +470,178 @@ def create_scatter_plot(results_df):
         )
         return fig
 
-    # Create scatter plot
-    fig = px.scatter(
-        plot_data,
-        x="metric_accuracy",
-        y="latency_mean_ms",
-        color="model_name",
-        hover_data=["dataset", "model_name"],
-        title="Model Performance: Accuracy vs Latency",
-        labels={
-            "metric_accuracy": "Accuracy",
-            "latency_mean_ms": "Latency (ms)",
-            "model_name": "Model",
-        },
+    # Calculate per-model means
+    model_means = (
+        plot_data.groupby("model_name")
+        .agg({"metric_accuracy": "mean", "latency_mean_ms": "mean"})
+        .reset_index()
     )
 
+    # Get unique models and assign colors
+    unique_models = sorted(plot_data["model_name"].unique())
+    color_palette = [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+    ]
+
+    # Create color mapping
+    model_colors = {}
+    for i, model in enumerate(unique_models):
+        model_colors[model] = color_palette[i % len(color_palette)]
+
+    # Create figure
+    fig = go.Figure()
+
+    # Add traces for each model (individual runs)
+    for model in unique_models:
+        model_data = plot_data[plot_data["model_name"] == model]
+        model_color = model_colors[model]
+
+        # Individual runs for this model
+        fig.add_trace(
+            go.Scatter(
+                x=model_data["metric_accuracy"],
+                y=model_data["latency_mean_ms"],
+                mode="markers",
+                name=f"{model} (runs)",
+                marker=dict(
+                    size=6, opacity=0.6, color=model_color, line=dict(width=1, color=model_color)
+                ),
+                hovertemplate=f"<b>{model}</b><br>"
+                + "Accuracy: %{x:.4f}<br>"
+                + "Latency: %{y:.2f}ms<br>"
+                + "Dataset: %{customdata}<extra></extra>",
+                customdata=model_data["dataset"],
+                legendgroup=model,
+                showlegend=True,
+            )
+        )
+
+    # Add traces for model means
+    for model in unique_models:
+        model_mean = model_means[model_means["model_name"] == model]
+        if not model_mean.empty:
+            model_color = model_colors[model]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=model_mean["metric_accuracy"],
+                    y=model_mean["latency_mean_ms"],
+                    mode="markers",
+                    name=f"{model} (mean)",
+                    marker=dict(
+                        size=14,
+                        opacity=1.0,
+                        color=model_color,
+                        symbol="diamond",
+                        line=dict(width=2, color="black"),
+                    ),
+                    hovertemplate=f"<b>{model} (Mean)</b><br>"
+                    + "Avg Accuracy: %{x:.4f}<br>"
+                    + "Avg Latency: %{y:.2f}ms<extra></extra>",
+                    legendgroup=model,
+                    showlegend=True,
+                )
+            )
+
+    # Update layout
     fig.update_layout(
+        title="Model Performance: Accuracy vs Latency",
         xaxis_title="Accuracy",
         yaxis_title="Latency (ms)",
         font=dict(size=12),
         title_font=dict(size=16),
+        showlegend=False,  # Hide legend since hover provides details
+        hovermode="closest",
+    )
+
+    return fig
+
+    # Prepare data
+    plot_data = results_df.dropna(subset=["metric_accuracy"])
+
+    if plot_data.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            title="No Valid Data for Plotting", xaxis_title="Accuracy", yaxis_title="Latency (ms)"
+        )
+        return fig
+
+    # Calculate per-model means
+    model_means = (
+        plot_data.groupby("model_name")
+        .agg({"metric_accuracy": "mean", "latency_mean_ms": "mean"})
+        .reset_index()
+    )
+
+    # Create figure with two traces
+    fig = go.Figure()
+
+    # Trace 1: Individual runs (small, transparent markers)
+    fig.add_trace(
+        go.Scatter(
+            x=plot_data["metric_accuracy"],
+            y=plot_data["latency_mean_ms"],
+            mode="markers",
+            name="Individual Runs",
+            marker=dict(
+                size=6, opacity=0.4, color="lightblue", line=dict(width=1, color="darkblue")
+            ),
+            hovertemplate="<b>%{text}</b><br>"
+            + "Accuracy: %{x:.4f}<br>"
+            + "Latency: %{y:.2f}ms<br>"
+            + "Dataset: %{customdata}<extra></extra>",
+            text=plot_data["model_name"],
+            customdata=plot_data["dataset"],
+        )
+    )
+
+    # Trace 2: Per-model means (bigger, opaque markers)
+    fig.add_trace(
+        go.Scatter(
+            x=model_means["metric_accuracy"],
+            y=model_means["latency_mean_ms"],
+            mode="markers",
+            name="Model Means",
+            marker=dict(
+                size=12,
+                opacity=1.0,
+                color="red",
+                symbol="diamond",
+                line=dict(width=2, color="darkred"),
+            ),
+            hovertemplate="<b>%{text}</b> (Mean)<br>"
+            + "Avg Accuracy: %{x:.4f}<br>"
+            + "Avg Latency: %{y:.2f}ms<extra></extra>",
+            text=model_means["model_name"],
+        )
+    )
+
+    # Update layout
+    fig.update_layout(
+        title="Model Performance: Accuracy vs Latency",
+        xaxis_title="Accuracy",
+        yaxis_title="Latency (ms)",
+        font=dict(size=12),
+        title_font=dict(size=16),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
+            x=0.5,
+            groupclick="togglegroup",
+        ),
+        hovermode="closest",
+        margin=dict(b=120),  # Add bottom margin for legend
     )
 
     return fig
@@ -413,6 +664,7 @@ def create_interface():
                 gr.Markdown("### Train multiple models on multiple datasets")
 
                 with gr.Row():
+                    # Column 1: Inputs and training matrix
                     with gr.Column():
                         models_checkboxes = gr.CheckboxGroup(
                             choices=DEFAULT_MODELS,
@@ -427,8 +679,20 @@ def create_interface():
                             info="Select one or more datasets to train on",
                         )
 
+                        # Training status matrix
+                        training_matrix = create_training_matrix()
+                        matrix_display = gr.HTML(training_matrix)
+                        gr.Markdown("*Green cells (✅) indicate trained combinations*")
+
+                        # Refresh button for the matrix
+                        refresh_matrix_btn = gr.Button("🔄 Refresh Status", size="sm")
+                        refresh_matrix_btn.click(
+                            fn=lambda: create_training_matrix(), outputs=matrix_display
+                        )
+
+                    # Column 2: Progress and output
                     with gr.Column():
-                        progress_bar = gr.Slider(
+                        train_progress_bar = gr.Slider(
                             minimum=0,
                             maximum=100,
                             value=0,
@@ -438,19 +702,19 @@ def create_interface():
                         )
                         with gr.Accordion("Training Details", open=False):
                             train_output = gr.Textbox(
-                                label="Training Status",
+                                label="Status",
                                 lines=15,
                                 interactive=False,
                                 show_copy_button=True,
                                 autoscroll=True,
                             )
 
-                train_button = gr.Button("🚀 Start Training", variant="primary")
-                train_button.click(
-                    fn=train_models,
-                    inputs=[models_checkboxes, datasets_checkboxes],
-                    outputs=[progress_bar, train_output],
-                )
+                        train_button = gr.Button("🚀 Start Training", variant="primary")
+                        train_button.click(
+                            fn=train_models,
+                            inputs=[models_checkboxes, datasets_checkboxes],
+                            outputs=[train_progress_bar, train_output],
+                        )
 
             # Tab 3: Benchmark
             with gr.TabItem("📊 Benchmark"):
