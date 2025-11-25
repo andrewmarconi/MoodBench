@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Evaluation script for EmoBench models.
+Evaluation script for MoodBench models.
 
 Performs comprehensive evaluation including:
 - Classification metrics (accuracy, F1, precision, recall)
@@ -195,7 +195,7 @@ def main():
 
     # Print header
     print("\n" + "=" * 60)
-    print("EmoBench - Model Evaluation".center(60))
+    print("MoodBench - Model Evaluation".center(60))
     print("=" * 60)
     print(f"Model Path:  {args.model_path}")
     print(f"Dataset:     {args.dataset}")

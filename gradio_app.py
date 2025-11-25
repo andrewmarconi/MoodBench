@@ -28,13 +28,15 @@ except ImportError as e:
 def create_interface():
     """Create the main Gradio interface."""
     with gr.Blocks(title="MoodBench - Multi-LLM Sentiment Analysis Benchmark") as interface:
-        gr.Markdown("""
+        gr.Markdown(
+            """
         # 🤖 MoodBench
 
         **Fast benchmarking of small language models (4M-410M parameters) for sentiment analysis.**
 
         This interface provides access to all MoodBench functionality through an intuitive web UI.
-        """)
+        """
+        )
 
         with gr.Tabs():
             # Import and create all tabs from modules

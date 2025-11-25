@@ -1,13 +1,12 @@
 """
-Device detection and management utilities for EmoBench.
+Device detection and management utilities for MoodBench.
 
 Handles device selection (CUDA, MPS, CPU) and provides device-specific
 synchronization and memory tracking utilities.
 """
 
 import logging
-import os
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 import torch
 
@@ -243,12 +242,12 @@ def print_device_info() -> None:
         print(f"Current GPU:          {info['current_gpu']}")
         print(f"GPU Capability:       {info['gpu_capability']}")
 
-    print(f"\nMemory Information:")
+    print("\nMemory Information:")
     print(f"  Total Memory:       {info['memory']['total_mb']:.2f} MB")
     print(f"  Allocated Memory:   {info['memory']['allocated_mb']:.2f} MB")
     print(f"  Free Memory:        {info['memory']['free_mb']:.2f} MB")
 
-    print(f"\nCapabilities:")
+    print("\nCapabilities:")
     print(f"  4-bit Quantization: {'✓ Yes' if info['supports_quantization'] else '✗ No'}")
     print(f"  Optimal dtype:      {info['optimal_dtype']}")
     print("=" * 60 + "\n")

@@ -1,5 +1,5 @@
 """
-Main entry point for EmoBench.
+Main entry point for MoodBench.
 
 This module serves as the entry point when running the package directly.
 It delegates to the CLI interface for all functionality.

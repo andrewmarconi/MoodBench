@@ -1,5 +1,5 @@
 """
-EmoBench CLI - Multi-LLM Sentiment Analysis Benchmark Framework
+MoodBench CLI - Multi-LLM Sentiment Analysis Benchmark Framework
 
 Command-line interface for training, evaluating, and comparing sentiment analysis models.
 """
@@ -20,15 +20,15 @@ logger = logging.getLogger(__name__)
 def create_parser() -> argparse.ArgumentParser:
     """Create the main argument parser."""
     parser = argparse.ArgumentParser(
-        description="EmoBench - Multi-LLM Sentiment Analysis Benchmark Framework",
+        description="MoodBench - Multi-LLM Sentiment Analysis Benchmark Framework",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
  Examples:
-  emobench train --model DistilBERT-base --dataset imdb
-  emobench train-all --dataset imdb
-  emobench benchmark --models BERT-tiny DistilBERT-base --datasets imdb sst2
-  emobench benchmark --all-models --datasets imdb sst2
-  emobench report --results-dir experiments/results
+  moodbench train --model DistilBERT-base --dataset imdb
+  moodbench train-all --dataset imdb
+  moodbench benchmark --models BERT-tiny DistilBERT-base --datasets imdb sst2
+  moodbench benchmark --all-models --datasets imdb sst2
+  moodbench report --results-dir experiments/results
         """,
     )
 
@@ -150,6 +150,53 @@ def create_parser() -> argparse.ArgumentParser:
         help="Report format (default: all)",
     )
 
+    # Estimated NPS command
+    nps_parser = subparsers.add_parser(
+        "estimated-nps", help="Estimate Net Promoter Score from model predictions"
+    )
+    nps_parser.add_argument(
+        "--models",
+        "-m",
+        nargs="+",
+        help="Model names/aliases to evaluate (space-separated). Use --all-models to evaluate all available models.",
+    )
+    nps_parser.add_argument(
+        "--all-models",
+        action="store_true",
+        help="Evaluate all available models",
+    )
+    nps_parser.add_argument(
+        "--datasets",
+        "-d",
+        nargs="+",
+        help="Dataset names to evaluate on (space-separated). Use --all-datasets to evaluate on all available datasets.",
+    )
+    nps_parser.add_argument(
+        "--all-datasets",
+        action="store_true",
+        help="Evaluate on all available datasets",
+    )
+    nps_parser.add_argument(
+        "--checkpoints-dir",
+        "-c",
+        type=Path,
+        default=Path("experiments/checkpoints"),
+        help="Directory containing trained model checkpoints",
+    )
+    nps_parser.add_argument(
+        "--output-dir",
+        "-o",
+        type=Path,
+        default=Path("experiments/results"),
+        help="Output directory for NPS results",
+    )
+    nps_parser.add_argument(
+        "--device",
+        choices=["auto", "cuda", "mps", "cpu"],
+        default="auto",
+        help="Device to use for evaluation (default: auto)",
+    )
+
     return parser
 
 
@@ -162,7 +209,7 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    logger.info(f"EmoBench CLI - Command: {args.command}")
+    logger.info(f"MoodBench CLI - Command: {args.command}")
 
     try:
         # Import here to avoid circular imports and allow CLI to work even if modules are incomplete
@@ -182,6 +229,10 @@ def main():
             from src.visualization.cli import generate_reports
 
             generate_reports(args)
+        elif args.command == "estimated-nps":
+            from src.evaluation.cli import estimate_nps
+
+            estimate_nps(args)
         else:
             parser.error(f"Unknown command: {args.command}")
 

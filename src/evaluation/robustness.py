@@ -1,12 +1,12 @@
 """
-Robustness evaluation metrics for EmoBench.
+Robustness evaluation metrics for MoodBench.
 
 Provides out-of-distribution detection, uncertainty quantification,
 and fairness analysis for model robustness assessment.
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 from sklearn.metrics import roc_auc_score
@@ -288,7 +288,6 @@ class RobustnessEvaluator:
         """Calculate False Positive Rate at target True Positive Rate."""
         # Sort by confidence (ascending - lower confidence = more OOD-like)
         sorted_indices = np.argsort(confidences)
-        sorted_ood_labels = ood_labels[sorted_indices]
 
         # Calculate TPR and FPR at different thresholds
         n_total = len(ood_labels)
@@ -333,7 +332,9 @@ class RobustnessEvaluator:
 
             bin_size = np.sum(bin_mask)
             bin_confidence = np.mean(max_probs[bin_mask])
-            bin_accuracy = np.mean(predictions[bin_mask] == np.argmax(probabilities[bin_mask], axis=1))
+            bin_accuracy = np.mean(
+                predictions[bin_mask] == np.argmax(probabilities[bin_mask], axis=1)
+            )
 
             ece += (bin_size / total_samples) * abs(bin_confidence - bin_accuracy)
 
@@ -378,5 +379,4 @@ def evaluate_model_robustness(
         fairness = evaluator.fairness_analysis(predictions, labels, protected_attributes)
         results.update(fairness)
 
-    return results</content>
-<parameter name="filePath">src/evaluation/robustness.py
+    return results

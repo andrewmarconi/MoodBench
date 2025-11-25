@@ -1,6 +1,6 @@
 # Model Configuration Guide
 
-This guide explains how to configure, add, and manage models in the EmoBench benchmark framework.
+This guide explains how to configure, add, and manage models in the MoodBench benchmark framework.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ This guide explains how to configure, add, and manage models in the EmoBench ben
 
 ## Overview
 
-EmoBench supports 17 pre-configured models ranging from 4M to 410M parameters, optimized for sentiment analysis benchmarking on Mac M4 and other consumer hardware. Models are configured in `config/models.yaml` with architecture-specific LoRA settings, batch sizes, and memory requirements.
+MoodBench supports 17 pre-configured models ranging from 4M to 410M parameters, optimized for sentiment analysis benchmarking on Mac M4 and other consumer hardware. Models are configured in `config/models.yaml` with architecture-specific LoRA settings, batch sizes, and memory requirements.
 
 ## Configuration Structure
 
@@ -150,8 +150,8 @@ Add the model to `config/models.yaml`:
 uv run python -c "from src.models.model_registry import ModelRegistry; print(ModelRegistry().list_models())"
 
 # Test training on small dataset
-export EMOBENCH_TEST_MODE=1
-uv run emobench train --model YourModel --dataset imdb --device=mps
+export MOODBENCH_TEST_MODE=1
+uv run moodbench train --model YourModel --dataset imdb --device=mps
 ```
 
 ## Configuration Parameters
@@ -196,7 +196,7 @@ Batch sizes are optimized per device type:
 effective_batch_size = per_device_batch_size × gradient_accumulation_steps
 ```
 
-EmoBench automatically uses gradient accumulation to maintain an effective batch size of 16.
+MoodBench automatically uses gradient accumulation to maintain an effective batch size of 16.
 
 ### Memory Requirements
 
@@ -224,7 +224,7 @@ FP16: 2 bytes/param, overhead ≈ 1.5×
 **Use case:** Quick validation, CI/CD testing
 
 ```bash
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini BERT-small ELECTRA-small MiniLM-L12
 ```
 
@@ -237,7 +237,7 @@ uv run emobench train-all --dataset amazon --device=mps \
 **Use case:** Comprehensive encoder architecture study
 
 ```bash
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini BERT-small DistilBERT-base \
            DistilRoBERTa DeBERTa-v3-small BERT-base RoBERTa-base
 ```
@@ -251,7 +251,7 @@ uv run emobench train-all --dataset amazon --device=mps \
 **Use case:** Generative model baseline
 
 ```bash
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models Pythia-70m Pythia-160m GPT2-small Gemma-2-2B
 ```
 
@@ -264,7 +264,7 @@ uv run emobench train-all --dataset amazon --device=mps \
 **Use case:** Analyze parameter count vs performance
 
 ```bash
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini BERT-small BERT-base \
            DistilBERT-base RoBERTa-base
 ```
@@ -278,7 +278,7 @@ uv run emobench train-all --dataset amazon --device=mps \
 **Use case:** Fast, reliable comparison for production
 
 ```bash
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models DistilBERT-base DistilRoBERTa DeBERTa-v3-small RoBERTa-base
 ```
 
@@ -291,7 +291,7 @@ uv run emobench train-all --dataset amazon --device=mps \
 **Use case:** Comprehensive lightweight model comparison
 
 ```bash
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini ELECTRA-small BERT-small MiniLM-L12 \
            DistilBERT-base Pythia-70m DistilRoBERTa DeBERTa-v3-small \
            BERT-base GPT2-small RoBERTa-base Pythia-160m Gemma-2-2B
@@ -418,7 +418,7 @@ print(config)  # Look for attention-related parameters
 
 **Solutions:**
 1. **Start with ultra-tiny models:** Use Set 1 (BERT-tiny, BERT-mini)
-2. **Reduce dataset size:** Set `EMOBENCH_TEST_MODE=1` for quick testing
+2. **Reduce dataset size:** Set `MOODBENCH_TEST_MODE=1` for quick testing
 3. **Increase batch size:** If memory allows, use larger batches
 4. **Use CUDA:** Train on NVIDIA GPU for 4-bit quantization
 
@@ -453,8 +453,8 @@ experiments/checkpoints/{model}_{dataset}/training_results.json
 ### 4. Use Test Mode
 For quick validation, use test mode with reduced dataset:
 ```bash
-export EMOBENCH_TEST_MODE=1
-uv run emobench train-all --dataset amazon --device=mps --models BERT-tiny
+export MOODBENCH_TEST_MODE=1
+uv run moodbench train-all --dataset amazon --device=mps --models BERT-tiny
 ```
 
 ### 5. Encoder vs Decoder
@@ -482,15 +482,15 @@ recommended_batch_size:
 
 ```bash
 # Test framework with smallest model
-export EMOBENCH_TEST_MODE=1
-uv run emobench train --model BERT-tiny --dataset imdb --device=mps
+export MOODBENCH_TEST_MODE=1
+uv run moodbench train --model BERT-tiny --dataset imdb --device=mps
 ```
 
 ### Example 2: Compare BERT Variants
 
 ```bash
 # Compare original BERT vs distilled versions
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini BERT-small DistilBERT-base BERT-base
 ```
 
@@ -498,7 +498,7 @@ uv run emobench train-all --dataset amazon --device=mps \
 
 ```bash
 # Compare encoder (RoBERTa) vs decoder (GPT2) on same task
-uv run emobench train-all --dataset sst2 --device=mps \
+uv run moodbench train-all --dataset sst2 --device=mps \
   --models RoBERTa-base GPT2-small
 ```
 
@@ -506,14 +506,14 @@ uv run emobench train-all --dataset sst2 --device=mps \
 
 ```bash
 # Test top production candidates
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models DistilBERT-base DistilRoBERTa DeBERTa-v3-small
 
 # Review results and select best model
-uv run emobench report --results-dir experiments/results
+uv run moodbench report --results-dir experiments/results
 ```
 
 ---
 
 **Last updated:** 2025-11-24
-**EmoBench version:** 0.1.0
+**MoodBench version:** 0.1.0

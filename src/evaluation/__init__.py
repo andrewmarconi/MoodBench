@@ -1,5 +1,5 @@
 """
-Evaluation and benchmarking module for EmoBench.
+Evaluation and benchmarking module for MoodBench.
 
 This module provides comprehensive evaluation tools:
 - Performance metrics (accuracy, F1, precision, recall)

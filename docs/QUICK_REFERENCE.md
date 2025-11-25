@@ -1,4 +1,4 @@
-# EmoBench Quick Reference
+# MoodBench Quick Reference
 
 ## Models by Speed/Memory
 
@@ -24,7 +24,7 @@
 
 ## Workflow Overview
 
-EmoBench follows a 3-step workflow:
+MoodBench follows a 3-step workflow:
 
 1. **Train** → Trains models and saves checkpoints to `experiments/checkpoints/`
 2. **Evaluate/Benchmark** → Runs evaluation and saves metrics to `experiments/results/`
@@ -40,42 +40,42 @@ EmoBench follows a 3-step workflow:
 
 ### Train Single Model
 ```bash
-uv run emobench train --model DistilBERT-base --dataset amazon --device=mps
+uv run moodbench train --model DistilBERT-base --dataset amazon --device=mps
 ```
 
 ### Train Multiple Models
 ```bash
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini DistilBERT-base
 ```
 
 ### Evaluate Single Model
 ```bash
-uv run emobench evaluate --model BERT-tiny --dataset amazon \
+uv run moodbench evaluate --model BERT-tiny --dataset amazon \
   --checkpoint experiments/checkpoints/BERT-tiny_amazon
 ```
 
 ### Benchmark All Models
 ```bash
-uv run emobench benchmark --dataset amazon \
+uv run moodbench benchmark --dataset amazon \
   --models-dir experiments/checkpoints --output-dir experiments/results
 ```
 
 ### Generate Reports
 ```bash
-uv run emobench report --results-dir experiments/results --format all
+uv run moodbench report --results-dir experiments/results --format all
 ```
 
 ### Quick Test (Small Dataset)
 ```bash
-export EMOBENCH_TEST_MODE=1
-uv run emobench train --model BERT-tiny --dataset imdb --device=mps
+export MOODBENCH_TEST_MODE=1
+uv run moodbench train --model BERT-tiny --dataset imdb --device=mps
 ```
 
 ### Skip Large Models (Avoid OOM)
 ```bash
 # Train only models < 200M
-uv run emobench train-all --dataset amazon --device=mps \
+uv run moodbench train-all --dataset amazon --device=mps \
   --models BERT-tiny BERT-mini BERT-small DistilBERT-base \
            DistilRoBERTa DeBERTa-v3-small BERT-base RoBERTa-base
 ```
@@ -83,7 +83,7 @@ uv run emobench train-all --dataset amazon --device=mps \
 ### Set Memory Limit (MPS)
 ```bash
 export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
-uv run emobench train-all --dataset amazon --device=mps
+uv run moodbench train-all --dataset amazon --device=mps
 ```
 
 ## Recommended Benchmark Sets
@@ -150,7 +150,7 @@ export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
 ### Slow Training
 ```bash
 # Use test mode with small dataset
-export EMOBENCH_TEST_MODE=1
+export MOODBENCH_TEST_MODE=1
 
 # Start with fastest models
 --models BERT-tiny BERT-mini
@@ -223,7 +223,7 @@ docs/
 
 ```bash
 # Enable test mode (small datasets)
-export EMOBENCH_TEST_MODE=1
+export MOODBENCH_TEST_MODE=1
 
 # Allow higher MPS memory usage
 export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
@@ -232,37 +232,37 @@ export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
 export HF_TOKEN=your_token_here
 
 # Verbose logging
-uv run emobench train --verbose
+uv run moodbench train --verbose
 ```
 
 ## Next Steps
 
 1. **Validate setup:** Run BERT-tiny in test mode
    ```bash
-   export EMOBENCH_TEST_MODE=1
-   uv run emobench train --model BERT-tiny --dataset imdb --device=mps
+   export MOODBENCH_TEST_MODE=1
+   uv run moodbench train --model BERT-tiny --dataset imdb --device=mps
    ```
 
 2. **Run first training:** Ultra-fast set (1 hour)
    ```bash
-   uv run emobench train-all --dataset amazon --device=mps \
+   uv run moodbench train-all --dataset amazon --device=mps \
      --models BERT-tiny BERT-mini BERT-small ELECTRA-small MiniLM-L12
    ```
 
 3. **Evaluate trained models:** Run benchmark suite
    ```bash
-   uv run emobench benchmark --dataset amazon \
+   uv run moodbench benchmark --dataset amazon \
      --models-dir experiments/checkpoints --output-dir experiments/results
    ```
 
 4. **Analyze results:** Generate comparison report
    ```bash
-   uv run emobench report --results-dir experiments/results
+   uv run moodbench report --results-dir experiments/results
    ```
 
 5. **Expand benchmark:** Add more models as needed
    ```bash
-   uv run emobench train-all --dataset amazon --device=mps \
+   uv run moodbench train-all --dataset amazon --device=mps \
      --models DistilBERT-base DistilRoBERTa DeBERTa-v3-small RoBERTa-base
    ```
 

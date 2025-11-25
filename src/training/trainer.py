@@ -1,5 +1,5 @@
 """
-Training module for EmoBench.
+Training module for MoodBench.
 """
 
 import logging
@@ -7,14 +7,14 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import torch
-from transformers import Trainer, TrainingArguments, EarlyStoppingCallback
+from transformers import Trainer, TrainingArguments
 
 logger = logging.getLogger(__name__)
 
 
-class EmoBenchTrainer:
+class MoodBenchTrainer:
     """
-    Custom trainer for EmoBench with MLflow logging.
+    Custom trainer for MoodBench with MLflow logging.
     """
 
     def __init__(
@@ -240,7 +240,7 @@ class EmoBenchTrainer:
             model_results = []
             for dataset in datasets:
                 # Create new trainer for each model-dataset combination
-                trainer = EmoBenchTrainer(model, dataset, str(self.config_dir), self.device)
+                trainer = MoodBenchTrainer(model, dataset, str(self.config_dir), self.device)
                 result = trainer.train()
                 result["dataset"] = dataset
                 model_results.append(result)
@@ -269,19 +269,16 @@ def train_model(
         config_dir: Configuration directory
 
     Returns:
-        EmoBenchTrainer: Trained trainer object with model and tokenizer
+        MoodBenchTrainer: Trained trainer object with model and tokenizer
     """
     from transformers import (
         AutoModelForSequenceClassification,
-        AutoTokenizer,
         TrainingArguments,
         Trainer,
-        DataCollatorWithPadding,
     )
     from src.data.loader import SentimentDataLoader
     from src.models.model_registry import ModelRegistry
     from src.utils.device import get_device
-    import torch
 
     # Get actual device
     if device == "auto":
@@ -572,7 +569,7 @@ def train_all_models(
 
             try:
                 # Train the model using the real implementation
-                trainer = train_model(
+                train_model(
                     model_name=model,
                     dataset_name=dataset,
                     output_dir=str(output_dir),
@@ -613,7 +610,7 @@ def train_all_models(
         json.dump(all_results, f, indent=2)
 
     logger.info(f"\n{'=' * 60}")
-    logger.info(f"All training completed!")
+    logger.info("All training completed!")
     logger.info(f"Results saved to: {results_file}")
     logger.info(f"{'=' * 60}\n")
 

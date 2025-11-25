@@ -1,5 +1,5 @@
 """
-Utility modules for EmoBench.
+Utility modules for MoodBench.
 
 This package contains shared utilities used across the framework:
 - Device detection and management

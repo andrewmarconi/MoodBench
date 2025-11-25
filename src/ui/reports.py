@@ -7,11 +7,8 @@ import os
 from pathlib import Path
 import gradio as gr
 
-import sys
-import os
 import subprocess
 import time
-from pathlib import Path
 
 
 def run_command_stream(command_list, timeout=300):

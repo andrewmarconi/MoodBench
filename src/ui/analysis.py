@@ -208,11 +208,7 @@ def create_accuracy_by_dataset_chart(results_df):
     # Aggregate data by model and dataset to prevent stacking of duplicates
     aggregated_df = (
         results_df.groupby(["model_name", "dataset"])
-        .agg(
-            {
-                "metric_accuracy": "mean"  # Take mean if multiple runs exist
-            }
-        )
+        .agg({"metric_accuracy": "mean"})  # Take mean if multiple runs exist
         .reset_index()
     )
 
@@ -250,11 +246,7 @@ def create_f1_by_dataset_chart(results_df):
     # Aggregate data by model and dataset to prevent stacking of duplicates
     aggregated_df = (
         results_df.groupby(["model_name", "dataset"])
-        .agg(
-            {
-                "metric_f1": "mean"  # Take mean if multiple runs exist
-            }
-        )
+        .agg({"metric_f1": "mean"})  # Take mean if multiple runs exist
         .reset_index()
     )
 
@@ -383,11 +375,7 @@ def create_ttft_chart(results_df):
     # Aggregate data by model and dataset to prevent stacking of duplicates
     aggregated_df = (
         results_df.groupby(["model_name", "dataset"])
-        .agg(
-            {
-                "latency_ttft_ms": "mean"  # Take mean if multiple runs exist
-            }
-        )
+        .agg({"latency_ttft_ms": "mean"})  # Take mean if multiple runs exist
         .reset_index()
     )
 
@@ -453,11 +441,7 @@ def create_throughput_comparison_chart(results_df):
     # Aggregate data by model and dataset to prevent stacking of duplicates
     aggregated_df = (
         results_df.groupby(["model_name", "dataset"])
-        .agg(
-            {
-                "throughput_samples_per_sec": "mean"  # Take mean if multiple runs exist
-            }
-        )
+        .agg({"throughput_samples_per_sec": "mean"})  # Take mean if multiple runs exist
         .reset_index()
     )
 
@@ -697,20 +681,23 @@ def create_analysis_tab():
                 gr.Markdown("#### Model Accuracy by Dataset")
                 accuracy_by_dataset_plot = gr.Plot(value=initial_accuracy_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Model Accuracy by Dataset** shows how well each model performs on different datasets.
 
                     - **Accuracy**: The percentage of predictions that are correct (higher is better)
                     - **Grouped bars**: Each model shows separate bars for different datasets
                     - **Color coding**: Different colors represent different datasets
                     - **Comparison**: Use this to see which models work best on specific types of data
-                    """)
+                    """
+                    )
 
             with gr.Column():
                 gr.Markdown("#### Latency vs Accuracy Scatter")
                 scatter_plot = gr.Plot(value=initial_scatter_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Latency vs Accuracy Scatter** shows the trade-off between speed and accuracy.
 
                     - **X-axis**: Latency in milliseconds (lower is faster)
@@ -719,7 +706,8 @@ def create_analysis_tab():
                     - **Diamonds**: Average performance per model (large diamonds)
                     - **Color coding**: Different colors for different models
                     - **Insight**: Look for models in the "sweet spot" - high accuracy with low latency
-                    """)
+                    """
+                    )
 
         # Row 2: F1 Score and Latency Breakdown
         with gr.Row():
@@ -727,7 +715,8 @@ def create_analysis_tab():
                 gr.Markdown("#### Model F1 Score by Dataset")
                 f1_by_dataset_plot = gr.Plot(value=initial_f1_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Model F1 Score by Dataset** shows balanced accuracy for positive/negative predictions.
 
                     - **F1 Score**: Harmonic mean of precision and recall (higher is better)
@@ -735,13 +724,15 @@ def create_analysis_tab():
                     - **Grouped bars**: Each model shows separate bars for different datasets
                     - **Color coding**: Different colors represent different datasets
                     - **Use case**: Important for sentiment analysis with uneven positive/negative samples
-                    """)
+                    """
+                    )
 
             with gr.Column():
                 gr.Markdown("#### Latency Breakdown per Model")
                 latency_breakdown_plot = gr.Plot(value=initial_latency_breakdown_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Latency Breakdown** shows different latency percentiles for each model.
 
                     - **Mean**: Average latency across all predictions
@@ -750,7 +741,8 @@ def create_analysis_tab():
                     - **P99**: 99th percentile (99% of predictions are faster than this)
                     - **Grouped bars**: Each model shows multiple latency metrics
                     - **Insight**: P95/P99 show worst-case performance, important for real-time applications
-                    """)
+                    """
+                    )
 
         # Row 3: TTFT and Throughput vs Accuracy
         with gr.Row():
@@ -758,7 +750,8 @@ def create_analysis_tab():
                 gr.Markdown("#### Time to First Token (TTFT)")
                 ttft_plot = gr.Plot(value=initial_ttft_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Time to First Token (TTFT)** measures how quickly models start generating responses.
 
                     - **TTFT**: Time from input to first output token (lower is better)
@@ -766,13 +759,15 @@ def create_analysis_tab():
                     - **Grouped bars**: Each model shows TTFT for different datasets
                     - **Color coding**: Different colors represent different datasets
                     - **Real-time applications**: Critical for chatbots and interactive systems
-                    """)
+                    """
+                    )
 
             with gr.Column():
                 gr.Markdown("#### Throughput vs Accuracy")
                 throughput_accuracy_plot = gr.Plot(value=initial_throughput_accuracy_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Throughput vs Accuracy** shows processing capacity vs quality trade-off.
 
                     - **X-axis**: Throughput in samples per second (higher is better)
@@ -781,7 +776,8 @@ def create_analysis_tab():
                     - **Color coding**: Different colors for different models
                     - **Symbols**: Different shapes for different datasets
                     - **Batch processing**: Important for high-volume applications
-                    """)
+                    """
+                    )
 
         # Row 4: Throughput Comparison and Efficiency Bubble
         with gr.Row():
@@ -789,7 +785,8 @@ def create_analysis_tab():
                 gr.Markdown("#### Comparative Throughput Analysis")
                 throughput_comparison_plot = gr.Plot(value=initial_throughput_comparison_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Comparative Throughput** shows processing speed across models.
 
                     - **Horizontal bars**: Throughput in samples per second
@@ -797,13 +794,15 @@ def create_analysis_tab():
                     - **Color coding**: Different colors represent different datasets
                     - **Orientation**: Horizontal for easy comparison of model names
                     - **Batch efficiency**: Higher throughput = more efficient for batch processing
-                    """)
+                    """
+                    )
 
             with gr.Column():
                 gr.Markdown("#### Model Efficiency Chart")
                 efficiency_bubble_plot = gr.Plot(value=initial_efficiency_bubble_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Efficiency Chart** combines multiple performance dimensions.
 
                     - **X-axis**: Latency in milliseconds (lower is faster)
@@ -812,7 +811,8 @@ def create_analysis_tab():
                     - **Color coding**: Different colors for different models
                     - **Hover data**: Additional metrics like F1 score and dataset
                     - **Multi-dimensional view**: Balance speed, accuracy, and capacity
-                    """)
+                    """
+                    )
 
         # Row 5: Latency Distribution
         with gr.Row():
@@ -820,7 +820,8 @@ def create_analysis_tab():
                 gr.Markdown("#### Latency Distribution per Model")
                 latency_distribution_plot = gr.Plot(value=initial_latency_distribution_fig)
                 with gr.Accordion("📖 What does this chart show?", open=False):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
                     **Latency Distribution** shows how consistent model response times are.
 
                     - **Points**: Average latency for each model-dataset combination
@@ -828,7 +829,8 @@ def create_analysis_tab():
                     - **Consistency**: Lower spread between percentiles = more predictable performance
                     - **Real-time requirements**: P95/P99 important for SLA compliance
                     - **Outlier sensitivity**: Shows how models handle edge cases
-                    """)
+                    """
+                    )
 
         # Connect refresh button to update all charts
         refresh_btn.click(

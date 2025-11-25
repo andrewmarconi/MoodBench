@@ -1,5 +1,5 @@
 """
-Model comparison utilities for EmoBench.
+Model comparison utilities for MoodBench.
 
 Provides tools for comparing multiple models across different metrics and datasets.
 """

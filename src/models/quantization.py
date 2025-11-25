@@ -1,5 +1,5 @@
 """
-Quantization utilities for EmoBench.
+Quantization utilities for MoodBench.
 
 Provides device-aware quantization configuration and utilities
 for working with quantized models.
@@ -223,9 +223,7 @@ def compare_quantization_methods(num_parameters: int) -> None:
 
     for name, dtype, quantized, bits in methods:
         estimate = estimate_model_size(num_parameters, dtype, quantized, bits)
-        print(
-            f"{name:<30} {estimate['size_mb']:>12,.1f}   {estimate['size_gb']:>12,.2f}"
-        )
+        print(f"{name:<30} {estimate['size_mb']:>12,.1f}   {estimate['size_gb']:>12,.2f}")
 
     print("=" * 70 + "\n")
 
@@ -280,7 +278,7 @@ def print_quantization_strategy(device: Union[str, torch.device]) -> None:
     print(f"Supports Quantization:  {'✓ Yes' if strategy['supports_quantization'] else '✗ No'}")
     print(f"Recommended dtype:      {strategy['recommended_dtype']}")
     print(f"Recommended Precision:  {strategy['recommended_precision']}")
-    print(f"\nNotes:")
+    print("\nNotes:")
     for note in strategy["notes"]:
         print(f"  • {note}")
     print("=" * 60 + "\n")

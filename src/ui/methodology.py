@@ -8,7 +8,8 @@ def create_methodology_tab():
     import gradio as gr
 
     with gr.TabItem("📚 Methodology"):
-        gr.Markdown("""
+        gr.Markdown(
+            """
 # Methodology & Data Documentation
 
 ## 📊 Data Provenance
@@ -156,4 +157,5 @@ Accuracy = (Correct Predictions / Total Predictions) × 100%
 ---
 
 *This documentation was generated as part of the MoodBench project to provide transparency about data sources, calculation methods, and appropriate interpretation of results.*
-        """)
+        """
+        )

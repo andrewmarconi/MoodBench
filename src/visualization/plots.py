@@ -1,5 +1,5 @@
 """
-Plot generation utilities for EmoBench.
+Plot generation utilities for MoodBench.
 
 Provides Plotly-based visualization functions for model comparison
 including scatter plots, radar charts, bar charts, and line plots.

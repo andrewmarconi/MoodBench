@@ -1,5 +1,5 @@
 """
-Model comparison and ranking module for EmoBench.
+Model comparison and ranking module for MoodBench.
 
 This module provides tools for comparing and ranking models:
 - Result aggregation from multiple experiments

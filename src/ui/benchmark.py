@@ -2,7 +2,10 @@
 Benchmark UI components for MoodBench Gradio interface.
 """
 
+import os
+import subprocess
 import sys
+import time
 from pathlib import Path
 import gradio as gr
 
@@ -19,12 +22,6 @@ DEFAULT_MODELS = [
 ]
 
 DEFAULT_DATASETS = ["imdb", "sst2", "amazon", "yelp"]
-
-import os
-import sys
-import subprocess
-import time
-from pathlib import Path
 
 
 def run_command_stream(command_list, timeout=300):

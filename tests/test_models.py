@@ -4,7 +4,6 @@ Unit tests for model configuration modules.
 
 import pytest
 import torch
-from unittest.mock import Mock, patch, MagicMock
 
 from src.models.model_registry import ModelRegistry, list_all_models, get_model_info
 from src.models.quantization import (
@@ -80,9 +79,7 @@ class TestModelRegistry:
 
         if models:
             # Test with CPU device
-            batch_size = registry.get_recommended_batch_size(
-                models[0], torch.device("cpu")
-            )
+            batch_size = registry.get_recommended_batch_size(models[0], torch.device("cpu"))
             assert isinstance(batch_size, int)
             assert batch_size > 0
 
@@ -103,7 +100,7 @@ class TestModelRegistry:
         if models:
             size = registry.get_model_size(models[0])
             assert isinstance(size, str)
-            assert ("B" in size or "M" in size)
+            assert "B" in size or "M" in size
 
     def test_get_architecture_type(self):
         """Test getting architecture type."""
@@ -302,10 +299,7 @@ class TestQuantization:
 class TestLoRAConfiguration:
     """Tests for LoRA configuration."""
 
-    @pytest.mark.skipif(
-        not torch.cuda.is_available(),
-        reason="CUDA not available"
-    )
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
     def test_get_4bit_config_cuda(self):
         """Test 4-bit quantization config on CUDA."""
         from src.models.lora_config import LoRAConfigManager

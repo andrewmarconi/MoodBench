@@ -1,4 +1,4 @@
-# Training configuration for EmoBench benchmark
+# Training configuration for MoodBench benchmark
 
 # Output directories
 output:

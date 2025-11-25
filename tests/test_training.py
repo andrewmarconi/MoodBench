@@ -5,10 +5,10 @@ Unit tests for training modules.
 import pytest
 import torch
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock
 from transformers import TrainingArguments
 
-from src.training.trainer import EmoBenchTrainer
+from src.training.trainer import MoodBenchTrainer
 from src.training.optimizer import (
     get_optimizer,
     create_scheduler,
@@ -24,8 +24,8 @@ from src.training.callbacks import (
 )
 
 
-class TestEmoBenchTrainer:
-    """Tests for EmoBenchTrainer class."""
+class TestMoodBenchTrainer:
+    """Tests for MoodBenchTrainer class."""
 
     @pytest.fixture
     def mock_model(self):
@@ -51,7 +51,7 @@ class TestEmoBenchTrainer:
 
     def test_trainer_initialization(self, mock_model, mock_tokenizer, mock_dataset):
         """Test trainer initialization."""
-        trainer = EmoBenchTrainer(
+        trainer = MoodBenchTrainer(
             model=mock_model,
             tokenizer=mock_tokenizer,
             train_dataset=mock_dataset,
@@ -60,14 +60,16 @@ class TestEmoBenchTrainer:
         )
 
         assert trainer.model == mock_model
-        assert trainer.processing_class == mock_tokenizer  # Updated from deprecated trainer.tokenizer
+        assert (
+            trainer.processing_class == mock_tokenizer
+        )  # Updated from deprecated trainer.tokenizer
         assert trainer.train_dataset == mock_dataset
         assert trainer.eval_dataset == mock_dataset
         assert trainer.device.type == "cpu"
 
     def test_get_training_args(self, mock_model, mock_tokenizer, mock_dataset):
         """Test training arguments generation."""
-        trainer = EmoBenchTrainer(
+        trainer = MoodBenchTrainer(
             model=mock_model,
             tokenizer=mock_tokenizer,
             train_dataset=mock_dataset,
@@ -84,7 +86,7 @@ class TestEmoBenchTrainer:
 
     def test_device_auto_detection(self, mock_model, mock_tokenizer, mock_dataset):
         """Test automatic device detection."""
-        trainer = EmoBenchTrainer(
+        trainer = MoodBenchTrainer(
             model=mock_model,
             tokenizer=mock_tokenizer,
             train_dataset=mock_dataset,
@@ -98,7 +100,7 @@ class TestEmoBenchTrainer:
     def test_device_specific_batch_size(self, mock_model, mock_tokenizer, mock_dataset):
         """Test device-specific batch size selection."""
         # Test CPU
-        trainer_cpu = EmoBenchTrainer(
+        trainer_cpu = MoodBenchTrainer(
             model=mock_model,
             tokenizer=mock_tokenizer,
             train_dataset=mock_dataset,
@@ -117,7 +119,7 @@ class TestEmoBenchTrainer:
         labels = torch.tensor([1, 0, 1, 0])
 
         eval_pred = (predictions.numpy(), labels.numpy())
-        metrics = EmoBenchTrainer.compute_metrics(eval_pred)
+        metrics = MoodBenchTrainer.compute_metrics(eval_pred)
 
         assert "accuracy" in metrics
         assert "f1" in metrics
@@ -130,7 +132,7 @@ class TestEmoBenchTrainer:
 
     def test_save_model(self, mock_model, mock_tokenizer, mock_dataset, tmp_path):
         """Test model saving."""
-        trainer = EmoBenchTrainer(
+        trainer = MoodBenchTrainer(
             model=mock_model,
             tokenizer=mock_tokenizer,
             train_dataset=mock_dataset,
@@ -157,9 +159,7 @@ class TestOptimizerConfig:
         # Create a simple model
         model = torch.nn.Linear(10, 2)
 
-        optimizer = get_optimizer(
-            model, learning_rate=2e-4, weight_decay=0.01, adam_epsilon=1e-8
-        )
+        optimizer = get_optimizer(model, learning_rate=2e-4, weight_decay=0.01, adam_epsilon=1e-8)
 
         assert optimizer is not None
         assert len(optimizer.param_groups) == 2  # Decay and no-decay groups
@@ -283,9 +283,7 @@ class TestCallbacks:
         """Test default callbacks creation."""
         log_dir = str(tmp_path / "logs")
 
-        callbacks = get_default_callbacks(
-            log_dir=log_dir, keep_best_n=3, track_memory=True
-        )
+        callbacks = get_default_callbacks(log_dir=log_dir, keep_best_n=3, track_memory=True)
 
         assert len(callbacks) == 5  # All 5 callbacks
 
@@ -300,9 +298,7 @@ class TestCallbacks:
         """Test default callbacks without memory tracking."""
         log_dir = str(tmp_path / "logs")
 
-        callbacks = get_default_callbacks(
-            log_dir=log_dir, keep_best_n=3, track_memory=False
-        )
+        callbacks = get_default_callbacks(log_dir=log_dir, keep_best_n=3, track_memory=False)
 
         assert len(callbacks) == 4  # Without MemoryTracker
 
@@ -388,7 +384,7 @@ logging:
         mock_dataset.__len__ = Mock(return_value=100)
 
         # Create trainer
-        trainer = EmoBenchTrainer(
+        trainer = MoodBenchTrainer(
             model=mock_model,
             tokenizer=mock_tokenizer,
             train_dataset=mock_dataset,
@@ -413,7 +409,7 @@ logging:
         mock_dataset.__len__ = Mock(return_value=100)
 
         # This should not raise an error even if MLflow is not installed
-        trainer = EmoBenchTrainer(
+        trainer = MoodBenchTrainer(
             model=mock_model,
             tokenizer=mock_tokenizer,
             train_dataset=mock_dataset,

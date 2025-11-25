@@ -1,5 +1,5 @@
 """
-Model registry for EmoBench.
+Model registry for MoodBench.
 
 Manages model configurations and metadata for all supported models.
 """
@@ -73,8 +73,7 @@ class ModelRegistry:
         """
         if model_alias not in self.models:
             raise ValueError(
-                f"Model '{model_alias}' not found. "
-                f"Available models: {self.list_models()}"
+                f"Model '{model_alias}' not found. " f"Available models: {self.list_models()}"
             )
 
         return self.models[model_alias]
@@ -315,15 +314,17 @@ class ModelRegistry:
         print(f"Full Name:            {info['name']}")
         print(f"Size:                 {info['size']}")
         print(f"Architecture:         {info['architecture']}")
-        print(f"\nLoRA Configuration:")
+        print("\nLoRA Configuration:")
         print(f"  Rank:               {info['lora_config'].get('rank')}")
         print(f"  Alpha:              {info['lora_config'].get('alpha')}")
         print(f"  Dropout:            {info['lora_config'].get('dropout')}")
         print(f"  Target Modules:     {info['lora_config'].get('target_modules')}")
-        print(f"\nRecommended Settings:")
+        print("\nRecommended Settings:")
         print(f"  Batch Size:         {info['recommended_batch_size']}")
         print(f"  Memory Required:    {info['memory_requirement']}")
-        print(f"  Quantization:       {'✓ Supported' if info['supports_quantization'] else '✗ Not Supported'}")
+        print(
+            f"  Quantization:       {'✓ Supported' if info['supports_quantization'] else '✗ Not Supported'}"
+        )
         print("=" * 60 + "\n")
 
 

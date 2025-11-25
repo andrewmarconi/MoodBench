@@ -1,5 +1,5 @@
 """
-Training module for EmoBench.
+Training module for MoodBench.
 
 This module provides training utilities for fine-tuning language models:
 - Custom trainer with device-aware configuration
@@ -8,5 +8,5 @@ This module provides training utilities for fine-tuning language models:
 - Multi-GPU and MPS support
 
 Classes:
-    EmoBenchTrainer: Main training class with LoRA support
+    MoodBenchTrainer: Main training class with LoRA support
 """

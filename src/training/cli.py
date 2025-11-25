@@ -1,5 +1,5 @@
 """
-Training CLI commands for EmoBench.
+Training CLI commands for MoodBench.
 """
 
 import logging

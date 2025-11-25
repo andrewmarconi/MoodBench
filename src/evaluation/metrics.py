@@ -1,5 +1,5 @@
 """
-Evaluation metrics for EmoBench.
+Evaluation metrics for MoodBench.
 
 Comprehensive metrics computation for sentiment analysis models including:
 - Classification metrics (accuracy, F1, precision, recall)
@@ -289,6 +289,27 @@ def compare_metrics(
     return comparison
 
 
+def _get_aggregation_function(aggregate_fn: str):
+    """Get the numpy aggregation function."""
+    if aggregate_fn == "mean":
+        return np.mean
+    elif aggregate_fn == "median":
+        return np.median
+    elif aggregate_fn == "std":
+        return np.std
+    elif aggregate_fn == "min":
+        return np.min
+    elif aggregate_fn == "max":
+        return np.max
+    else:
+        raise ValueError(f"Unsupported aggregation function: {aggregate_fn}")
+
+
+def _collect_metric_values(metrics_list: List[Dict[str, float]], key: str) -> List[float]:
+    """Collect values for a specific metric key."""
+    return [m[key] for m in metrics_list if key in m]
+
+
 def aggregate_metrics(
     metrics_list: List[Dict[str, float]], aggregate_fn: str = "mean"
 ) -> Dict[str, float]:
@@ -311,23 +332,12 @@ def aggregate_metrics(
         all_keys.update(metrics.keys())
 
     aggregated = {}
+    agg_func = _get_aggregation_function(aggregate_fn)
 
     for key in all_keys:
-        values = [m[key] for m in metrics_list if key in m]
-
-        if not values:
-            continue
-
-        if aggregate_fn == "mean":
-            aggregated[key] = np.mean(values)
-        elif aggregate_fn == "median":
-            aggregated[key] = np.median(values)
-        elif aggregate_fn == "std":
-            aggregated[key] = np.std(values)
-        elif aggregate_fn == "min":
-            aggregated[key] = np.min(values)
-        elif aggregate_fn == "max":
-            aggregated[key] = np.max(values)
+        values = _collect_metric_values(metrics_list, key)
+        if values:
+            aggregated[key] = agg_func(values)
 
     return aggregated
 

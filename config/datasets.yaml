@@ -1,4 +1,4 @@
-# Dataset configurations for EmoBench benchmark
+# Dataset configurations for MoodBench benchmark
 
 datasets:
   # Standard sentiment analysis datasets
@@ -57,6 +57,24 @@ datasets:
       remove_special_chars: false
       remove_urls: true
       remove_mentions: false
+
+  disneyland:
+    name: "Disneyland Reviews"
+    source: "kaggle"
+    dataset_id: "arushchillar/disneyland-reviews"
+    text_column: "Review_Text"
+    label_column: "Rating"
+    num_labels: 2
+    max_length: 512
+    preprocessing:
+      lowercase: false
+      remove_special_chars: false
+      remove_urls: true
+      remove_mentions: false
+    # For Disneyland dataset, we'll convert star ratings to binary sentiment
+    # Ratings 4-5 = positive (1), ratings 1-3 = negative (0)
+    rating_mapping:
+      positive_threshold: 4  # Ratings >= 4 are positive
 
 # Data split configuration
 splits:

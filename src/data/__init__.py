@@ -1,5 +1,5 @@
 """
-Data loading and preprocessing module for EmoBench.
+Data loading and preprocessing module for MoodBench.
 
 This module provides utilities for:
 - Loading sentiment analysis datasets from HuggingFace and KaggleHub

@@ -4,7 +4,6 @@ Unit tests for data loading and preprocessing modules.
 
 import pytest
 import pandas as pd
-from unittest.mock import Mock, patch, MagicMock
 
 from src.data.loader import (
     SentimentDataLoader,
@@ -116,7 +115,9 @@ class TestTextPreprocessor:
         text = "Hello! How are you? #test @user"
         cleaned = preprocessor.clean_text(text)
         # Should keep basic punctuation
-        assert "!" in cleaned or "?" in cleaned or cleaned.replace(" ", "").replace(".", "").isalpha()
+        assert (
+            "!" in cleaned or "?" in cleaned or cleaned.replace(" ", "").replace(".", "").isalpha()
+        )
 
     def test_empty_text(self):
         """Test handling of empty text."""
@@ -127,11 +128,7 @@ class TestTextPreprocessor:
     def test_batch_cleaning(self):
         """Test cleaning a batch of texts."""
         preprocessor = TextPreprocessor(remove_urls=True)
-        texts = [
-            "Check out https://example.com",
-            "Another  text  with   spaces",
-            "Normal text"
-        ]
+        texts = ["Check out https://example.com", "Another  text  with   spaces", "Normal text"]
         cleaned = preprocessor.clean_batch(texts)
         assert len(cleaned) == 3
         assert "https://example.com" not in cleaned[0]
@@ -229,10 +226,7 @@ class TestDatasetValidation:
 
     def test_validate_dataset_valid(self):
         """Test validation with a valid dataset."""
-        df = pd.DataFrame({
-            "text": ["text1", "text2", "text3"],
-            "label": [0, 1, 0]
-        })
+        df = pd.DataFrame({"text": ["text1", "text2", "text3"], "label": [0, 1, 0]})
 
         report = validate_dataset(df, "text", "label", num_labels=2)
 
@@ -243,10 +237,7 @@ class TestDatasetValidation:
 
     def test_validate_dataset_missing_values(self):
         """Test validation with missing values."""
-        df = pd.DataFrame({
-            "text": ["text1", None, "text3"],
-            "label": [0, 1, None]
-        })
+        df = pd.DataFrame({"text": ["text1", None, "text3"], "label": [0, 1, None]})
 
         report = validate_dataset(df, "text", "label", num_labels=2)
 
@@ -257,10 +248,7 @@ class TestDatasetValidation:
 
     def test_validate_dataset_empty_text(self):
         """Test validation with empty text."""
-        df = pd.DataFrame({
-            "text": ["text1", "", "text3"],
-            "label": [0, 1, 0]
-        })
+        df = pd.DataFrame({"text": ["text1", "", "text3"], "label": [0, 1, 0]})
 
         report = validate_dataset(df, "text", "label", num_labels=2)
 
@@ -269,10 +257,7 @@ class TestDatasetValidation:
 
     def test_validate_dataset_wrong_label_count(self):
         """Test validation with wrong number of labels."""
-        df = pd.DataFrame({
-            "text": ["text1", "text2", "text3"],
-            "label": [0, 1, 2]
-        })
+        df = pd.DataFrame({"text": ["text1", "text2", "text3"], "label": [0, 1, 2]})
 
         report = validate_dataset(df, "text", "label", num_labels=2)
 
@@ -282,10 +267,9 @@ class TestDatasetValidation:
 
     def test_validate_dataset_statistics(self):
         """Test validation statistics calculation."""
-        df = pd.DataFrame({
-            "text": ["short", "medium length", "very long text here"],
-            "label": [0, 1, 0]
-        })
+        df = pd.DataFrame(
+            {"text": ["short", "medium length", "very long text here"], "label": [0, 1, 0]}
+        )
 
         report = validate_dataset(df, "text", "label", num_labels=2)
 

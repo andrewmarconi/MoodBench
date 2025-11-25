@@ -1,5 +1,5 @@
 """
-Result aggregation utilities for EmoBench.
+Result aggregation utilities for MoodBench.
 
 Handles loading, combining, and aggregating benchmark results from multiple models
 and experiments into unified DataFrames for analysis.

@@ -1,5 +1,5 @@
 """
-Memory profiling for EmoBench models.
+Memory profiling for MoodBench models.
 
 Tracks memory usage during training and inference across different devices
 (CUDA, MPS, CPU).
@@ -7,7 +7,7 @@ Tracks memory usage during training and inference across different devices
 
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import torch
 
@@ -213,14 +213,14 @@ class MemoryProfiler:
                 stats["power_usage_watts"] = power / 1000.0  # Convert from mW to W
                 stats["power_limit_watts"] = power_limit / 1000.0
                 stats["power_usage_percent"] = (power / power_limit) * 100.0
-            except:
+            except Exception:
                 pass  # Power monitoring may not be available
 
             # Temperature
             try:
                 temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
                 stats["temperature_celsius"] = float(temp)
-            except:
+            except Exception:
                 pass
 
             pynvml.nvmlShutdown()
@@ -345,26 +345,26 @@ def print_memory_stats(stats: Dict[str, float], title: str = "Memory Statistics"
     device = stats.get("device", "")
 
     if device == "cuda":
-        print(f"\nCUDA Memory:")
+        print("\nCUDA Memory:")
         print(f"  Allocated:      {stats.get('allocated_gb', 0):.3f} GB")
         print(f"  Reserved:       {stats.get('reserved_gb', 0):.3f} GB")
         print(f"  Peak Allocated: {stats.get('peak_allocated_gb', 0):.3f} GB")
         print(f"  Peak Reserved:  {stats.get('peak_reserved_gb', 0):.3f} GB")
 
     elif device == "mps":
-        print(f"\nMPS Memory:")
+        print("\nMPS Memory:")
         print(f"  Allocated:      {stats.get('allocated_gb', 0):.3f} GB")
         if "peak_allocated_gb" in stats:
             print(f"  Peak Allocated: {stats.get('peak_allocated_gb', 0):.3f} GB")
 
     elif device == "cpu":
-        print(f"\nCPU Memory:")
+        print("\nCPU Memory:")
         if "rss_gb" in stats:
             print(f"  RSS:            {stats['rss_gb']:.3f} GB")
         if "vms_gb" in stats:
             print(f"  VMS:            {stats['vms_gb']:.3f} GB")
         if "system_total_gb" in stats:
-            print(f"\nSystem Memory:")
+            print("\nSystem Memory:")
             print(f"  Total:          {stats['system_total_gb']:.2f} GB")
             print(f"  Available:      {stats['system_available_gb']:.2f} GB")
             print(f"  Used:           {stats.get('system_percent', 0):.1f}%")
@@ -397,7 +397,7 @@ def print_model_memory(model: torch.nn.Module, title: str = "Model Memory") -> N
 
 if __name__ == "__main__":
     # Demo: Memory profiling
-    from src.utils.device import get_device, print_device_info
+    from src.utils.device import get_device
 
     print("Memory Profiler Module")
     print("=" * 60)

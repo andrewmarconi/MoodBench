@@ -1,5 +1,5 @@
 """
-Training callbacks for EmoBench.
+Training callbacks for MoodBench.
 
 Custom callbacks for progress tracking, logging, and model checkpointing.
 """
@@ -7,9 +7,9 @@ Custom callbacks for progress tracking, logging, and model checkpointing.
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
-from transformers import TrainerCallback, TrainerControl, TrainerState, TrainingArguments
+from transformers import TrainerCallback
 from transformers.trainer_callback import ProgressCallback
 
 logger = logging.getLogger(__name__)
@@ -247,7 +247,8 @@ if __name__ == "__main__":
 
     # Show how to use
     print("\nUsage Example:")
-    print("""
+    print(
+        """
 from src.training.callbacks import get_default_callbacks
 
 callbacks = get_default_callbacks(
@@ -262,4 +263,5 @@ trainer = Trainer(
     callbacks=callbacks,
     ...
 )
-    """)
+    """
+    )

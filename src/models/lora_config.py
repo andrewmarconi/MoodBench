@@ -1,16 +1,19 @@
 """
-LoRA/QLoRA configuration for EmoBench.
+LoRA/QLoRA configuration for MoodBench.
 
 Handles device-aware model loading with LoRA fine-tuning,
 including 4-bit quantization on CUDA and full precision on MPS.
 """
 
 import logging
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import torch
 from peft import LoraConfig, TaskType, get_peft_model, PeftModel
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModelForSequenceClassification
+
+if TYPE_CHECKING:
+    from transformers import BitsAndBytesConfig
 
 logger = logging.getLogger(__name__)
 
@@ -118,9 +121,7 @@ class LoRAConfigManager:
                     break
             else:
                 # Use defaults if not found
-                logger.warning(
-                    f"Model {model_name} not in registry, using default LoRA config"
-                )
+                logger.warning(f"Model {model_name} not in registry, using default LoRA config")
                 lora_cfg = {}
 
         return LoRAConfigManager.get_lora_config(
@@ -201,14 +202,10 @@ class LoRAConfigManager:
             )
         elif device.type == "mps":
             # MPS with full precision
-            model = LoRAConfigManager._load_model_mps(
-                model_name, num_labels, **model_kwargs
-            )
+            model = LoRAConfigManager._load_model_mps(model_name, num_labels, **model_kwargs)
         else:
             # CPU or fallback
-            model = LoRAConfigManager._load_model_cpu(
-                model_name, num_labels, **model_kwargs
-            )
+            model = LoRAConfigManager._load_model_cpu(model_name, num_labels, **model_kwargs)
 
         # Apply LoRA
         model = get_peft_model(model, lora_config)
@@ -228,11 +225,10 @@ class LoRAConfigManager:
     ) -> AutoModelForSequenceClassification:
         """Load model with 4-bit quantization (CUDA only)."""
         try:
-            from transformers import BitsAndBytesConfig
+            from transformers import BitsAndBytesConfig  # noqa: F401
         except ImportError:
             raise ImportError(
-                "bitsandbytes required for quantization. "
-                "Install with: uv sync --extra cuda"
+                "bitsandbytes required for quantization. Install with: uv sync --extra cuda"
             )
 
         quant_config = LoRAConfigManager.get_4bit_config()

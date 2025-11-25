@@ -2,12 +2,14 @@
 Training UI components for MoodBench Gradio interface.
 """
 
+import os
+import subprocess
 import sys
+import time
 from pathlib import Path
 import gradio as gr
 
 # Import shared constants and functions
-from ..utils.device import get_device  # Assuming this exists, or we can define locally
 
 # Available models and datasets (fallback if registry not available)
 DEFAULT_MODELS = [
@@ -22,12 +24,6 @@ DEFAULT_MODELS = [
 ]
 
 DEFAULT_DATASETS = ["imdb", "sst2", "amazon", "yelp"]
-
-import os
-import sys
-import subprocess
-import time
-from pathlib import Path
 
 
 def run_command_stream(command_list, timeout=300):
@@ -171,15 +167,9 @@ def train_models(models, datasets):
     )
 
 
-def create_training_matrix():
-    """Create an HTML table showing trained model-dataset combinations."""
+def _get_trained_combinations():
+    """Get dictionary of trained model-dataset combinations."""
     checkpoints_dir = Path("experiments/checkpoints")
-
-    # Get all available models and datasets from the constants
-    all_models = DEFAULT_MODELS
-    all_datasets = DEFAULT_DATASETS
-
-    # Check which combinations have been trained
     trained_combinations = {}
 
     if checkpoints_dir.exists():
@@ -196,7 +186,11 @@ def create_training_matrix():
                         if final_checkpoint.exists():
                             trained_combinations[(model, dataset)] = True
 
-    # Create HTML table
+    return trained_combinations
+
+
+def _generate_matrix_html(trained_combinations, all_models, all_datasets):
+    """Generate HTML for the training matrix."""
     html = """
     <style>
         .training-matrix {
@@ -238,7 +232,7 @@ def create_training_matrix():
             }
             .not-trained {
                 background-color: rgba(239, 68, 68, 0.2);
-                color: #f87171;
+                color: #dc2626;
             }
         }
     </style>
@@ -269,12 +263,23 @@ def create_training_matrix():
     return html
 
 
+def create_training_matrix():
+    """Create an HTML table showing trained model-dataset combinations."""
+    # Get all available models and datasets from the constants
+    all_models = DEFAULT_MODELS
+    all_datasets = DEFAULT_DATASETS
+
+    trained_combinations = _get_trained_combinations()
+    return _generate_matrix_html(trained_combinations, all_models, all_datasets)
+
+
 def create_training_tab():
     """Create the training tab for the Gradio interface."""
     with gr.TabItem("🚀 Train Models"):
         gr.Markdown("### Train multiple models on multiple datasets")
 
-        gr.Markdown("""
+        gr.Markdown(
+            """
         ⚠️ **Note about training timeouts:** Due to Gradio's request timeout limitations, training larger models or complex configurations may fail in the web interface.
         For long-running trainings, use the command line interface instead:
 
@@ -283,7 +288,8 @@ def create_training_tab():
         ```
 
         The web interface works best for quick training runs on smaller models like BERT-tiny and BERT-mini.
-        """)
+        """
+        )
 
         with gr.Row():
             # Column 1: Inputs and training matrix

@@ -1,5 +1,5 @@
 """
-Results aggregation and storage for EmoBench.
+Results aggregation and storage for MoodBench.
 
 Collects, stores, and analyzes evaluation results from multiple models and datasets.
 """
@@ -8,7 +8,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -79,7 +79,9 @@ class ResultsAggregator:
         self.results.append(result)
         logger.info(f"Added result: {model_name} on {dataset_name}")
 
-    def to_dataframe(self, include_benchmark: bool = True, include_memory: bool = True) -> pd.DataFrame:
+    def to_dataframe(
+        self, include_benchmark: bool = True, include_memory: bool = True
+    ) -> pd.DataFrame:
         """
         Convert results to pandas DataFrame.
 
@@ -262,9 +264,7 @@ class ResultsAggregator:
             # Get top N overall
             return df.nlargest(n, metric_col)
 
-    def compare_models(
-        self, model1: str, model2: str, dataset: Optional[str] = None
-    ) -> Dict:
+    def compare_models(self, model1: str, model2: str, dataset: Optional[str] = None) -> Dict:
         """
         Compare two models.
 
@@ -287,7 +287,7 @@ class ResultsAggregator:
             df2 = df2[df2["dataset"] == dataset]
 
         if df1.empty or df2.empty:
-            logger.warning(f"No results found for comparison")
+            logger.warning("No results found for comparison")
             return {}
 
         # Get metric columns
@@ -394,5 +394,7 @@ if __name__ == "__main__":
     print("=" * 60)
     comparison = aggregator.compare_models("DistilBERT-base", "RoBERTa-base")
     for metric, data in comparison["metrics"].items():
-        print(f"{metric}: {data[comparison['model1']]:.4f} vs {data[comparison['model2']]:.4f} "
-              f"(diff: {data['diff']:+.4f}, {data['improvement_pct']:+.2f}%)")
+        print(
+            f"{metric}: {data[comparison['model1']]:.4f} vs {data[comparison['model2']]:.4f} "
+            f"(diff: {data['diff']:+.4f}, {data['improvement_pct']:+.2f}%)"
+        )

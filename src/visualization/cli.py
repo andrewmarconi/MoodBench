@@ -1,5 +1,5 @@
 """
-Visualization CLI commands for EmoBench.
+Visualization CLI commands for MoodBench.
 """
 
 import logging

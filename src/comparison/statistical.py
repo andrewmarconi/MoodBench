@@ -1,5 +1,5 @@
 """
-Statistical analysis utilities for EmoBench.
+Statistical analysis utilities for MoodBench.
 
 Provides statistical significance testing, confidence intervals, effect size calculations,
 and bootstrapping for robust model comparisons.

@@ -1,5 +1,5 @@
 """
-Text preprocessing utilities for EmoBench.
+Text preprocessing utilities for MoodBench.
 
 Provides text cleaning, normalization, and optional data augmentation
 for sentiment analysis tasks.
@@ -7,7 +7,7 @@ for sentiment analysis tasks.
 
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import pandas as pd
 
@@ -339,9 +339,7 @@ def validate_dataset(
     if report["empty_text"] > 0:
         issues.append(f"{report['empty_text']} empty text values")
     if report["num_unique_labels"] != num_labels:
-        issues.append(
-            f"Expected {num_labels} labels, found {report['num_unique_labels']}"
-        )
+        issues.append(f"Expected {num_labels} labels, found {report['num_unique_labels']}")
 
     report["issues"] = issues
     report["valid"] = len(issues) == 0
@@ -357,12 +355,12 @@ def print_validation_report(report: Dict) -> None:
     print(f"Total Samples:        {report['num_samples']:,}")
     print(f"Unique Labels:        {report['num_unique_labels']}")
     print(f"Expected Labels:      {report['expected_labels']}")
-    print(f"\nLabel Distribution:")
+    print("\nLabel Distribution:")
     for label, count in sorted(report["label_distribution"].items()):
         percentage = (count / report["num_samples"]) * 100
         print(f"  Label {label}:         {count:,} ({percentage:.1f}%)")
 
-    print(f"\nText Statistics:")
+    print("\nText Statistics:")
     print(f"  Missing Text:     {report['missing_text']}")
     print(f"  Empty Text:       {report['empty_text']}")
     print(f"  Avg Length:       {report['avg_text_length']:.1f} chars")
@@ -371,7 +369,7 @@ def print_validation_report(report: Dict) -> None:
 
     print(f"\nValidation Status:    {'✓ PASS' if report['valid'] else '✗ FAIL'}")
     if report["issues"]:
-        print(f"\nIssues Found:")
+        print("\nIssues Found:")
         for issue in report["issues"]:
             print(f"  - {issue}")
     print("=" * 60 + "\n")

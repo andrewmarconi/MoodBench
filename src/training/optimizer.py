@@ -1,5 +1,5 @@
 """
-Optimizer configuration for EmoBench.
+Optimizer configuration for MoodBench.
 
 Provides optimizer and scheduler configurations optimized for LoRA fine-tuning.
 """
@@ -9,8 +9,7 @@ from typing import Dict, Optional
 
 import torch
 from torch.optim import AdamW, Optimizer
-from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, LinearLR
-from transformers import get_scheduler
+from torch.optim.lr_scheduler import LambdaLR
 
 logger = logging.getLogger(__name__)
 
@@ -204,16 +203,12 @@ def create_scheduler(
     if scheduler_type == "linear":
         if num_training_steps is None:
             raise ValueError("num_training_steps required for linear scheduler")
-        return get_linear_schedule_with_warmup(
-            optimizer, num_warmup_steps, num_training_steps
-        )
+        return get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps)
 
     elif scheduler_type == "cosine":
         if num_training_steps is None:
             raise ValueError("num_training_steps required for cosine scheduler")
-        return get_cosine_schedule_with_warmup(
-            optimizer, num_warmup_steps, num_training_steps
-        )
+        return get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps)
 
     elif scheduler_type == "constant":
         if num_warmup_steps > 0:
@@ -253,9 +248,7 @@ def get_optimizer_info(optimizer: Optimizer) -> Dict:
     info["weight_decays"] = weight_decays
 
     # Count parameters
-    total_params = sum(
-        sum(p.numel() for p in group["params"]) for group in optimizer.param_groups
-    )
+    total_params = sum(sum(p.numel() for p in group["params"]) for group in optimizer.param_groups)
     info["total_parameters"] = total_params
 
     return info
@@ -273,9 +266,9 @@ def print_optimizer_info(optimizer: Optimizer) -> None:
     print(f"Parameter Groups:    {info['num_param_groups']}")
     print(f"Total Parameters:    {info['total_parameters']:,}")
 
-    if len(info['weight_decays']) > 1:
-        print(f"\nParameter Group Details:")
-        for i, (lr, wd) in enumerate(zip(info['learning_rates'], info['weight_decays'])):
+    if len(info["weight_decays"]) > 1:
+        print("\nParameter Group Details:")
+        for i, (lr, wd) in enumerate(zip(info["learning_rates"], info["weight_decays"])):
             print(f"  Group {i}: lr={lr:.2e}, weight_decay={wd}")
 
     print("=" * 60 + "\n")

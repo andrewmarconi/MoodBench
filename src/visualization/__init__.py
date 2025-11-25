@@ -1,5 +1,5 @@
 """
-Visualization and reporting module for EmoBench.
+Visualization and reporting module for MoodBench.
 
 This module provides visualization and reporting tools:
 - Plot generation for comparisons and analysis

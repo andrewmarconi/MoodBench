@@ -7,7 +7,7 @@
 uv sync                    # Install dependencies
 uv add <package>           # Add dependency
 uv run python main.py       # Run main script
-uv run emobench           # Run CLI (after uv sync)
+uv run moodbench           # Run CLI (after uv sync)
 ```
 
 **Development:**
@@ -24,11 +24,13 @@ uv run pytest --cov=src --cov-report=html  # Generate coverage report
 
 **Training & Evaluation:**
 ```bash
-uv run emobench train --model DistilBERT-base --dataset imdb  # Train single model
+uv run moodbench train --model DistilBERT-base --dataset imdb  # Train single model
 ./scripts/train_model.sh <model> <dataset>  # Train via script
 ./scripts/train_all.sh [dataset]           # Train all models
 ./scripts/evaluate_all.sh                  # Run full evaluation
-uv run emobench benchmark --models-dir experiments/checkpoints  # Run benchmark
+uv run moodbench benchmark --models-dir experiments/checkpoints  # Run benchmark
+uv run moodbench estimated-nps --all-models --all-datasets  # Estimate NPS from model predictions
+python scripts/clean_results.py             # Clean invalid benchmark results with N/A values
 ```
 
 ## Code Style

@@ -1,4 +1,4 @@
-# Model configurations for EmoBench benchmark
+# Model configurations for MoodBench benchmark
 # Each model has its own LoRA hyperparameters and target modules
 
 models:

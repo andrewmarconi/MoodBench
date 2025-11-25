@@ -1,5 +1,5 @@
 """
-Data loading utilities for EmoBench.
+Data loading utilities for MoodBench.
 
 Handles loading sentiment analysis datasets from various sources
 (HuggingFace Hub, KaggleHub) and prepares them for training.
@@ -8,7 +8,7 @@ Handles loading sentiment analysis datasets from various sources
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 from datasets import Dataset, DatasetDict, load_dataset
@@ -103,7 +103,7 @@ class SentimentDataLoader:
         # For testing, use smaller dataset sizes
         import os
 
-        if os.environ.get("EMOBENCH_TEST_MODE"):
+        if os.environ.get("MOODBENCH_TEST_MODE"):
             # Very small datasets for quick testing
             self.dataset_config["max_train_samples"] = 50
             self.dataset_config["max_val_samples"] = 20
@@ -227,9 +227,54 @@ class SentimentDataLoader:
 
         return tokenized
 
+    def _combine_datasets(self, dataset) -> Any:
+        """Combine datasets from DatasetDict."""
+        if isinstance(dataset, DatasetDict):
+            # Combine train and test if available
+            all_data = []
+            if "train" in dataset:
+                all_data.append(dataset["train"])
+            if "test" in dataset:
+                all_data.append(dataset["test"])
+            if "validation" in dataset:
+                all_data.append(dataset["validation"])
+
+            if len(all_data) > 1:
+                from datasets import concatenate_datasets
+
+                return concatenate_datasets(all_data)
+            else:
+                return all_data[0]
+        else:
+            return dataset
+
+    def _shuffle_dataset(self, dataset, split_config):
+        """Shuffle dataset if configured."""
+        seed = split_config.get("random_seed", 42)
+        if split_config.get("shuffle", True):
+            return dataset.shuffle(seed=seed)
+        return dataset
+
+    def _adjust_split_sizes(self, combined, train_size, val_size, test_size):
+        """Adjust split sizes if dataset is smaller than requested."""
+        total_needed = train_size + val_size + test_size
+
+        if len(combined) < total_needed:
+            logger.warning(
+                f"Dataset has only {len(combined)} examples, "
+                f"but {total_needed} requested. Using all available data."
+            )
+            # Adjust sizes proportionally
+            ratio = len(combined) / total_needed
+            train_size = int(train_size * ratio)
+            val_size = int(val_size * ratio)
+            test_size = int(test_size * ratio)
+
+        return train_size, val_size, test_size
+
     def prepare_splits(
         self,
-        dataset: DatasetDict,
+        dataset,
         train_size: Optional[int] = None,
         val_size: Optional[int] = None,
         test_size: Optional[int] = None,
@@ -254,44 +299,12 @@ class SentimentDataLoader:
         val_size = val_size or split_config.get("val_size", 2000)
         test_size = test_size or split_config.get("test_size", 5000)
 
-        # Combine all available data
-        if isinstance(dataset, DatasetDict):
-            # Combine train and test if available
-            all_data = []
-            if "train" in dataset:
-                all_data.append(dataset["train"])
-            if "test" in dataset:
-                all_data.append(dataset["test"])
-            if "validation" in dataset:
-                all_data.append(dataset["validation"])
+        combined = self._combine_datasets(dataset)
+        combined = self._shuffle_dataset(combined, split_config)
 
-            if len(all_data) > 1:
-                from datasets import concatenate_datasets
-
-                combined = concatenate_datasets(all_data)
-            else:
-                combined = all_data[0]
-        else:
-            combined = dataset
-
-        # Shuffle
-        seed = split_config.get("random_seed", 42)
-        if split_config.get("shuffle", True):
-            combined = combined.shuffle(seed=seed)
-
-        # Create splits
-        total_needed = train_size + val_size + test_size
-
-        if len(combined) < total_needed:
-            logger.warning(
-                f"Dataset has only {len(combined)} examples, "
-                f"but {total_needed} requested. Using all available data."
-            )
-            # Adjust sizes proportionally
-            ratio = len(combined) / total_needed
-            train_size = int(train_size * ratio)
-            val_size = int(val_size * ratio)
-            test_size = int(test_size * ratio)
+        train_size, val_size, test_size = self._adjust_split_sizes(
+            combined, train_size, val_size, test_size
+        )
 
         # Split dataset
         train_data = combined.select(range(train_size))
@@ -349,8 +362,6 @@ class SentimentDataLoader:
         )
 
         # Remove original text columns (keep only tokenized data)
-        text_column = self.dataset_config.get("text_column", "text")
-        label_column = self.dataset_config.get("label_column", "label")
 
         # Get all column names
         cols_to_remove = [

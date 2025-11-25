@@ -1,5 +1,5 @@
 """
-Ranking system for EmoBench models.
+Ranking system for MoodBench models.
 
 Provides multiple ranking strategies based on different criteria:
 - Performance-based (metrics)

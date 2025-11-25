@@ -1,5 +1,5 @@
 [project]
-name = "emobench"
+name = "moodbench"
 version = "0.1.0"
 description = "Multi-LLM Sentiment Analysis Benchmark Framework with LoRA/QLoRA fine-tuning"
 readme = "README.md"
@@ -13,6 +13,7 @@ dependencies = [
     # Data & Evaluation
     "datasets>=2.16.0",
     "kagglehub>=0.3.13",
+    "kaggle>=1.6.0",
     "evaluate>=0.4.1",
     "scikit-learn>=1.3.0",
     # Experiment Tracking & Benchmarking
@@ -31,6 +32,7 @@ dependencies = [
     "psutil>=5.9.0",
     "python-dotenv>=1.2.1",
     "gradio>=5.50.0",
+    "radon>=6.0.1",
 ]
 
 [project.optional-dependencies]
@@ -50,7 +52,7 @@ dev = [
 ]
 
 [project.scripts]
-emobench = "src.cli:main"
+moodbench = "src.cli:main"
 
 [build-system]
 requires = ["hatchling"]

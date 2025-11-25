@@ -1,5 +1,5 @@
 """
-Report generation utilities for EmoBench.
+Report generation utilities for MoodBench.
 
 Generates comprehensive ranking reports in various formats including
 JSON, CSV, markdown, and visual summaries.

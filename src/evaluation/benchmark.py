@@ -1,5 +1,5 @@
 """
-Speed benchmarking for EmoBench models.
+Speed benchmarking for MoodBench models.
 """
 
 import logging
@@ -9,8 +9,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch
-from datasets import Dataset
-from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -114,11 +112,10 @@ class BenchmarkRunner:
         Returns:
             Dict: Evaluation results
         """
-        from datasets import load_dataset, Dataset
+        from datasets import load_dataset
         from src.evaluation.metrics import MetricsCalculator
         from transformers import AutoTokenizer, AutoModelForSequenceClassification
         import torch
-        from pathlib import Path
 
         logger.info(f"Evaluating {model_name} on {dataset_name}")
 

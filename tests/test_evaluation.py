@@ -5,8 +5,6 @@ Unit tests for evaluation modules.
 import pytest
 import numpy as np
 import torch
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 
 from src.evaluation.metrics import (
     MetricsCalculator,
