@@ -15,7 +15,24 @@ def benchmark_models(args):
     Args:
         args: Parsed command line arguments
     """
-    logger.info(f"Running benchmark on models: {args.models} on datasets: {args.datasets}")
+    # Handle model selection
+    if args.all_models and args.models:
+        raise ValueError("Cannot specify both --models and --all-models. Choose one.")
+    elif not args.all_models and not args.models:
+        raise ValueError("Must specify either --models or --all-models.")
+
+    if args.all_models:
+        # Load all available models from registry
+        from src.models.model_registry import ModelRegistry
+
+        registry = ModelRegistry()
+        models = list(registry.models.keys())
+        logger.info(f"Benchmarking all {len(models)} available models: {models}")
+    else:
+        models = args.models
+        logger.info(f"Benchmarking selected models: {models}")
+
+    logger.info(f"Running benchmark on datasets: {args.datasets}")
 
     try:
         # Import evaluation components
@@ -29,7 +46,7 @@ def benchmark_models(args):
 
         # Run benchmark
         benchmark_func(
-            models=args.models,
+            models=models,
             datasets=args.datasets,
             checkpoints_dir=str(args.checkpoints_dir),
             output_dir=str(args.output_dir),

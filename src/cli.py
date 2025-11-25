@@ -27,6 +27,7 @@ def create_parser() -> argparse.ArgumentParser:
   emobench train --model DistilBERT-base --dataset imdb
   emobench train-all --dataset imdb
   emobench benchmark --models BERT-tiny DistilBERT-base --datasets imdb sst2
+  emobench benchmark --all-models --datasets imdb sst2
   emobench report --results-dir experiments/results
         """,
     )
@@ -86,8 +87,12 @@ def create_parser() -> argparse.ArgumentParser:
         "--models",
         "-m",
         nargs="+",
-        required=True,
-        help="Model names/aliases to benchmark (space-separated)",
+        help="Model names/aliases to benchmark (space-separated). Use --all-models to benchmark all available models.",
+    )
+    benchmark_parser.add_argument(
+        "--all-models",
+        action="store_true",
+        help="Benchmark all available models",
     )
     benchmark_parser.add_argument(
         "--datasets",

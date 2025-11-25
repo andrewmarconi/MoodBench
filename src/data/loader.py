@@ -104,9 +104,10 @@ class SentimentDataLoader:
         import os
 
         if os.environ.get("EMOBENCH_TEST_MODE"):
-            self.dataset_config["max_train_samples"] = 100
-            self.dataset_config["max_val_samples"] = 50
-            self.dataset_config["max_test_samples"] = 50
+            # Very small datasets for quick testing
+            self.dataset_config["max_train_samples"] = 50
+            self.dataset_config["max_val_samples"] = 20
+            self.dataset_config["max_test_samples"] = 20
 
         logger.info(f"Initialized loader for {self.dataset_info['name']}")
 
@@ -352,7 +353,11 @@ class SentimentDataLoader:
         label_column = self.dataset_config.get("label_column", "label")
 
         # Get all column names
-        cols_to_remove = [col for col in train_data.column_names if col not in ["input_ids", "attention_mask", "labels"]]
+        cols_to_remove = [
+            col
+            for col in train_data.column_names
+            if col not in ["input_ids", "attention_mask", "labels"]
+        ]
 
         if cols_to_remove:
             logger.info(f"Removing original columns: {cols_to_remove}")

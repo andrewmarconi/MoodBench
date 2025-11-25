@@ -35,7 +35,7 @@ DEFAULT_MODELS = [
     "MiniLM-L12",
     "DistilBERT-base",
     "RoBERTa-base",
-    "GPT2-small",
+    # "GPT2-small",  # Temporarily disabled for Gradio - too slow for demo
 ]
 
 DEFAULT_DATASETS = ["imdb", "sst2", "amazon", "yelp"]
@@ -47,6 +47,8 @@ def run_command_stream(command_list, timeout=300):
         # Set environment
         env = os.environ.copy()
         env["PYTHONPATH"] = str(Path(__file__).parent)
+        # Enable test mode for faster training in Gradio
+        env["EMOBENCH_TEST_MODE"] = "1"
 
         process = subprocess.Popen(
             command_list,
@@ -647,6 +649,659 @@ def create_scatter_plot(results_df):
     return fig
 
 
+def create_accuracy_by_dataset_chart(results_df):
+    """Create bar chart showing model accuracy by dataset."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    # Aggregate data by model and dataset to prevent stacking of duplicates
+    aggregated_df = (
+        results_df.groupby(["model_name", "dataset"])
+        .agg(
+            {
+                "metric_accuracy": "mean"  # Take mean if multiple runs exist
+            }
+        )
+        .reset_index()
+    )
+
+    # Filter out rows with no accuracy data
+    aggregated_df = aggregated_df.dropna(subset=["metric_accuracy"])
+
+    if aggregated_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Accuracy Data Available")
+        return fig
+
+    # Create bar chart for accuracy
+    fig = px.bar(
+        aggregated_df,
+        x="model_name",
+        y="metric_accuracy",
+        color="dataset",
+        barmode="group",
+        title="Model Accuracy by Dataset",
+        labels={"model_name": "Model", "metric_accuracy": "Accuracy", "dataset": "Dataset"},
+    )
+
+    fig.update_layout(xaxis_tickangle=-45, height=400, showlegend=True)
+
+    return fig
+
+    # Prepare data for accuracy only
+    accuracy_data = []
+    for _, row in results_df.iterrows():
+        model = row["model_name"]
+        dataset = row["dataset"]
+        if pd.notna(row.get("metric_accuracy")):
+            accuracy_data.append(
+                {"model_name": model, "dataset": dataset, "accuracy": row["metric_accuracy"]}
+            )
+
+    if not accuracy_data:
+        fig = go.Figure()
+        fig.update_layout(title="No Accuracy Data Available")
+        return fig
+
+    accuracy_df = pd.DataFrame(accuracy_data)
+
+    # Create bar chart for accuracy
+    fig = px.bar(
+        accuracy_df,
+        x="model_name",
+        y="accuracy",
+        color="dataset",
+        barmode="group",
+        title="Model Accuracy by Dataset",
+        labels={"model_name": "Model", "accuracy": "Accuracy", "dataset": "Dataset"},
+    )
+
+    fig.update_layout(xaxis_tickangle=-45, height=400, showlegend=True)
+
+    return fig
+
+
+def create_f1_by_dataset_chart(results_df):
+    """Create bar chart showing model F1 score by dataset."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    # Aggregate data by model and dataset to prevent stacking of duplicates
+    aggregated_df = (
+        results_df.groupby(["model_name", "dataset"])
+        .agg(
+            {
+                "metric_f1": "mean"  # Take mean if multiple runs exist
+            }
+        )
+        .reset_index()
+    )
+
+    # Filter out rows with no F1 data
+    aggregated_df = aggregated_df.dropna(subset=["metric_f1"])
+
+    if aggregated_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No F1 Data Available")
+        return fig
+
+    # Create bar chart for F1
+    fig = px.bar(
+        aggregated_df,
+        x="model_name",
+        y="metric_f1",
+        color="dataset",
+        barmode="group",
+        title="Model F1 Score by Dataset",
+        labels={"model_name": "Model", "metric_f1": "F1 Score", "dataset": "Dataset"},
+    )
+
+    fig.update_layout(xaxis_tickangle=-45, height=400, showlegend=True)
+
+    return fig
+
+    # Prepare data for F1 only
+    f1_data = []
+    for _, row in results_df.iterrows():
+        model = row["model_name"]
+        dataset = row["dataset"]
+        if pd.notna(row.get("metric_f1")):
+            f1_data.append({"model_name": model, "dataset": dataset, "f1_score": row["metric_f1"]})
+
+    if not f1_data:
+        fig = go.Figure()
+        fig.update_layout(title="No F1 Data Available")
+        return fig
+
+    f1_df = pd.DataFrame(f1_data)
+
+    # Create bar chart for F1
+    fig = px.bar(
+        f1_df,
+        x="model_name",
+        y="f1_score",
+        color="dataset",
+        barmode="group",
+        title="Model F1 Score by Dataset",
+        labels={"model_name": "Model", "f1_score": "F1 Score", "dataset": "Dataset"},
+    )
+
+    fig.update_layout(xaxis_tickangle=-45, height=400, showlegend=True)
+
+    return fig
+
+    # Prepare data for both metrics
+    plot_data = []
+    for _, row in results_df.iterrows():
+        model = row["model_name"]
+        dataset = row["dataset"]
+
+        # Add accuracy data
+        if pd.notna(row.get("metric_accuracy")):
+            plot_data.append(
+                {
+                    "model_name": model,
+                    "dataset": dataset,
+                    "metric": "Accuracy",
+                    "value": row["metric_accuracy"],
+                }
+            )
+
+        # Add F1 data
+        if pd.notna(row.get("metric_f1")):
+            plot_data.append(
+                {
+                    "model_name": model,
+                    "dataset": dataset,
+                    "metric": "F1 Score",
+                    "value": row["metric_f1"],
+                }
+            )
+
+    if not plot_data:
+        fig = go.Figure()
+        fig.update_layout(title="No Performance Data Available")
+        return fig
+
+    plot_df = pd.DataFrame(plot_data)
+
+    # Create faceted bar chart
+    fig = px.bar(
+        plot_df,
+        x="model_name",
+        y="value",
+        color="dataset",
+        facet_col="metric",
+        barmode="group",
+        title="Model Performance by Dataset",
+        labels={"model_name": "Model", "value": "Score", "dataset": "Dataset"},
+    )
+
+    fig.update_layout(xaxis_tickangle=-45, height=400, showlegend=True)
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+
+    return fig
+
+
+def create_latency_breakdown_chart(results_df):
+    """Create chart showing latency metrics breakdown per model (Mean, Median, P95, P99)."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    # Aggregate data by model and dataset to prevent stacking of duplicates
+    aggregated_df = (
+        results_df.groupby(["model_name", "dataset"])
+        .agg(
+            {
+                "latency_mean_ms": "mean",
+                "latency_median_ms": "mean",
+                "latency_p95_ms": "mean",
+                "latency_p99_ms": "mean",
+            }
+        )
+        .reset_index()
+    )
+
+    # Prepare data for bar chart - we'll show mean, median, p95, p99 as separate traces
+    latency_data = []
+
+    for _, row in aggregated_df.iterrows():
+        model = row["model_name"]
+        dataset = row["dataset"]
+
+        # Create entries for each latency metric (excluding TTFT)
+        latency_data.extend(
+            [
+                {
+                    "model": model,
+                    "dataset": dataset,
+                    "metric": "Mean",
+                    "value": row.get("latency_mean_ms", 0),
+                },
+                {
+                    "model": model,
+                    "dataset": dataset,
+                    "metric": "Median",
+                    "value": row.get("latency_median_ms", 0),
+                },
+                {
+                    "model": model,
+                    "dataset": dataset,
+                    "metric": "P95",
+                    "value": row.get("latency_p95_ms", 0),
+                },
+                {
+                    "model": model,
+                    "dataset": dataset,
+                    "metric": "P99",
+                    "value": row.get("latency_p99_ms", 0),
+                },
+            ]
+        )
+
+    if not latency_data:
+        fig = go.Figure()
+        fig.update_layout(title="No Latency Data Available")
+        return fig
+
+    latency_df = pd.DataFrame(latency_data)
+
+    # Create grouped bar chart - group by model and dataset combination
+    latency_df["model_dataset"] = latency_df["model"] + " (" + latency_df["dataset"] + ")"
+
+    fig = px.bar(
+        latency_df,
+        x="model_dataset",
+        y="value",
+        color="metric",
+        barmode="group",
+        title="Latency Breakdown per Model",
+        labels={
+            "model_dataset": "Model (Dataset)",
+            "value": "Latency (ms)",
+            "metric": "Latency Metric",
+        },
+    )
+
+    fig.update_layout(
+        height=400,
+        showlegend=False,
+        xaxis_tickangle=-45,
+    )
+
+    return fig
+
+
+def create_ttft_chart(results_df):
+    """Create bar chart showing Time to First Token (TTFT) per model."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    # Aggregate data by model and dataset to prevent stacking of duplicates
+    aggregated_df = (
+        results_df.groupby(["model_name", "dataset"])
+        .agg(
+            {
+                "latency_ttft_ms": "mean"  # Take mean if multiple runs exist
+            }
+        )
+        .reset_index()
+    )
+
+    # Filter out rows with no TTFT data
+    aggregated_df = aggregated_df.dropna(subset=["latency_ttft_ms"])
+
+    if aggregated_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No TTFT Data Available")
+        return fig
+
+    # Create bar chart for TTFT
+    fig = px.bar(
+        aggregated_df,
+        x="model_name",
+        y="latency_ttft_ms",
+        color="dataset",
+        barmode="group",
+        title="Time to First Token (TTFT) per Model",
+        labels={"model_name": "Model", "latency_ttft_ms": "TTFT (ms)", "dataset": "Dataset"},
+    )
+
+    fig.update_layout(xaxis_tickangle=-45, height=400, showlegend=True)
+
+    return fig
+
+
+def create_throughput_accuracy_scatter(results_df):
+    """Create scatter plot of throughput vs accuracy."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    fig = px.scatter(
+        results_df,
+        x="throughput_samples_per_sec",
+        y="metric_accuracy",
+        color="model_name",
+        symbol="dataset",
+        title="Throughput vs. Accuracy Scatter",
+        labels={
+            "throughput_samples_per_sec": "Throughput (samples/sec)",
+            "metric_accuracy": "Accuracy",
+            "model_name": "Model",
+            "dataset": "Dataset",
+        },
+        hover_data=["model_name", "dataset", "metric_f1"],
+    )
+
+    fig.update_layout(height=400, showlegend=True)
+
+    return fig
+
+
+def create_throughput_comparison_chart(results_df):
+    """Create horizontal bar chart comparing throughput."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    # Aggregate data by model and dataset to prevent stacking of duplicates
+    aggregated_df = (
+        results_df.groupby(["model_name", "dataset"])
+        .agg(
+            {
+                "throughput_samples_per_sec": "mean"  # Take mean if multiple runs exist
+            }
+        )
+        .reset_index()
+    )
+
+    fig = px.bar(
+        aggregated_df,  # Use aggregated data instead of raw results_df
+        x="throughput_samples_per_sec",
+        y="model_name",
+        color="dataset",
+        orientation="h",
+        barmode="group",
+        title="Comparative Throughput Analysis",
+        labels={
+            "throughput_samples_per_sec": "Throughput (samples/sec)",
+            "model_name": "Model",
+            "dataset": "Dataset",
+        },
+    )
+
+    fig.update_layout(height=400, showlegend=True)
+
+    return fig
+
+
+def create_efficiency_bubble_chart(results_df):
+    """Create bubble chart showing latency vs accuracy with throughput as size."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    fig = px.scatter(
+        results_df,
+        x="latency_mean_ms",
+        y="metric_accuracy",
+        size="throughput_samples_per_sec",
+        color="model_name",
+        hover_data=["dataset", "metric_f1"],
+        title="Model Efficiency Chart (Latency vs Accuracy, Size = Throughput)",
+        labels={
+            "latency_mean_ms": "Latency (ms)",
+            "metric_accuracy": "Accuracy",
+            "throughput_samples_per_sec": "Throughput",
+            "model_name": "Model",
+        },
+    )
+
+    fig.update_layout(height=400, showlegend=True)
+
+    return fig
+
+
+def create_latency_distribution_chart(results_df):
+    """Create range plot showing latency percentiles per model."""
+    if results_df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No Data Available")
+        return fig
+
+    # Create figure
+    fig = go.Figure()
+
+    # Get unique models and datasets
+    unique_combinations = results_df.groupby(["model_name", "dataset"]).size().reset_index()
+
+    colors = [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+    ]
+    color_idx = 0
+
+    for _, combo in unique_combinations.iterrows():
+        model = combo["model_name"]
+        dataset = combo["dataset"]
+
+        # Get data for this model-dataset combination
+        row = results_df[(results_df["model_name"] == model) & (results_df["dataset"] == dataset)]
+        if row.empty:
+            continue
+
+        row = row.iloc[0]
+
+        # Get percentile values
+        median = row.get("latency_median_ms", 0)
+        p95 = row.get("latency_p95_ms", 0)
+        p99 = row.get("latency_p99_ms", 0)
+
+        if median == 0 and p95 == 0 and p99 == 0:
+            continue
+
+        model_dataset = f"{model}<br>({dataset})"
+        color = colors[color_idx % len(colors)]
+        color_idx += 1
+
+        # Add range from median to p95
+        fig.add_trace(
+            go.Scatter(
+                x=[model_dataset, model_dataset],
+                y=[median, p95],
+                mode="lines",
+                line=dict(color=color, width=4),
+                name=f"{model} ({dataset}) - Median to P95",
+                showlegend=True,
+            )
+        )
+
+        # Add range from p95 to p99
+        fig.add_trace(
+            go.Scatter(
+                x=[model_dataset, model_dataset],
+                y=[p95, p99],
+                mode="lines",
+                line=dict(color=color, width=2, dash="dash"),
+                name=f"{model} ({dataset}) - P95 to P99",
+                showlegend=True,
+            )
+        )
+
+        # Add markers for percentiles
+        fig.add_trace(
+            go.Scatter(
+                x=[model_dataset, model_dataset, model_dataset],
+                y=[median, p95, p99],
+                mode="markers",
+                marker=dict(color=color, size=8, symbol=["diamond", "square", "triangle-up"]),
+                name=f"{model} ({dataset}) - Percentiles",
+                text=[f"Median: {median:.1f}ms", f"P95: {p95:.1f}ms", f"P99: {p99:.1f}ms"],
+                hovertemplate="%{text}",
+                showlegend=False,
+            )
+        )
+
+    # Update layout
+    fig.update_layout(
+        title="Latency Distribution per Model (Percentile Ranges)",
+        xaxis_title="Model (Dataset)",
+        yaxis_title="Latency (ms)",
+        height=400,
+        showlegend=False,
+    )
+
+    return fig
+
+
+def update_dashboard():
+    """Update dashboard with latest benchmark results."""
+    # Load latest data
+    results_df = load_benchmark_results()
+    summary = create_dashboard_summary(results_df)
+
+    # Create all charts
+    scatter_fig = create_scatter_plot(results_df)
+    accuracy_by_dataset_fig = create_accuracy_by_dataset_chart(results_df)
+    f1_by_dataset_fig = create_f1_by_dataset_chart(results_df)
+    latency_breakdown_fig = create_latency_breakdown_chart(results_df)
+    ttft_fig = create_ttft_chart(results_df)
+    throughput_accuracy_scatter_fig = create_throughput_accuracy_scatter(results_df)
+    throughput_comparison_fig = create_throughput_comparison_chart(results_df)
+    efficiency_bubble_fig = create_efficiency_bubble_chart(results_df)
+    latency_distribution_fig = create_latency_distribution_chart(results_df)
+
+    # Create summary markdown
+    summary_md = f"""## 📊 Results Summary
+
+- **Total Models:** {summary["total_models"]}
+- **Total Datasets:** {summary["total_datasets"]}
+- **Total Results:** {summary["total_results"]}
+- **Last Updated:** {summary["last_updated"]}
+- **Top Model:** {summary["top_model"]}
+
+*💡 Use the **Reports** tab for data export and detailed analysis*"""
+
+    if not results_df.empty:
+        # Format the results table with proper column names and data formatting
+        display_df = format_benchmark_results_table(results_df)
+        return (
+            summary_md,
+            scatter_fig,
+            accuracy_by_dataset_fig,
+            f1_by_dataset_fig,
+            latency_breakdown_fig,
+            ttft_fig,
+            throughput_accuracy_scatter_fig,
+            throughput_comparison_fig,
+            efficiency_bubble_fig,
+            latency_distribution_fig,
+            display_df,
+            gr.Markdown(visible=False),
+        )
+    else:
+        no_data_md = """
+### No Results Available
+
+Run some benchmarks first to see results here:
+
+1. Go to the **Benchmark** tab
+2. Select models and datasets
+3. Click **Start Benchmark**
+4. Click **🔄 Refresh Analysis** to view results
+"""
+        empty_fig = go.Figure()
+        empty_fig.update_layout(
+            title="No Data Available", xaxis_title="Accuracy", yaxis_title="Latency (ms)"
+        )
+        return (
+            summary_md,
+            empty_fig,
+            empty_fig,
+            empty_fig,
+            empty_fig,
+            empty_fig,
+            empty_fig,
+            empty_fig,
+            empty_fig,
+            gr.Dataframe(visible=False),
+            no_data_md,
+        )
+
+
+def format_benchmark_results_table(results_df):
+    """Format benchmark results dataframe with proper column names and data formatting."""
+    if results_df.empty:
+        return pd.DataFrame()
+
+    # Create a copy to avoid modifying the original
+    formatted_df = results_df.copy()
+
+    # Rename columns
+    column_mapping = {
+        "model_name": "Model",
+        "dataset": "Dataset",
+        "metric_accuracy": "Accuracy",
+        "metric_f1": "F1 Score",
+        "latency_mean_ms": "Mean (ms)",
+        "latency_median_ms": "Median (ms)",
+        "latency_p95_ms": "P95 (ms)",
+        "latency_p99_ms": "P99 (ms)",
+        "latency_ttft_ms": "TTFT (ms)",
+        "throughput_samples_per_sec": "Throughput",
+    }
+
+    formatted_df = formatted_df.rename(columns=column_mapping)
+
+    # Format percentage columns (Accuracy and F1 Score)
+    if "Accuracy" in formatted_df.columns:
+        formatted_df["Accuracy"] = formatted_df["Accuracy"].apply(
+            lambda x: f"{x:.1%}" if pd.notna(x) else "N/A"
+        )
+
+    if "F1 Score" in formatted_df.columns:
+        formatted_df["F1 Score"] = formatted_df["F1 Score"].apply(
+            lambda x: f"{x:.1%}" if pd.notna(x) else "N/A"
+        )
+
+    # Format latency columns (trim to hundredths place)
+    latency_columns = ["Mean (ms)", "Median (ms)", "P95 (ms)", "P99 (ms)", "TTFT (ms)"]
+    for col in latency_columns:
+        if col in formatted_df.columns:
+            formatted_df[col] = formatted_df[col].apply(
+                lambda x: f"{x:.2f}" if pd.notna(x) and x != 0 else "N/A"
+            )
+
+    # Format throughput column (trim to hundredths place)
+    if "Throughput" in formatted_df.columns:
+        formatted_df["Throughput"] = formatted_df["Throughput"].apply(
+            lambda x: f"{x:.2f}" if pd.notna(x) and x != 0 else "N/A"
+        )
+
+    # Remove internal columns
+    formatted_df = formatted_df.drop(columns=["timestamp", "_source_file"], errors="ignore")
+
+    return formatted_df
+
+
 def create_interface():
     """Create the Gradio interface."""
     with gr.Blocks(title="EmoBench - LLM Benchmark UI") as interface:
@@ -662,6 +1317,17 @@ def create_interface():
             # Tab 1: Train Models
             with gr.TabItem("🚀 Train Models"):
                 gr.Markdown("### Train multiple models on multiple datasets")
+
+                gr.Markdown("""
+                ⚠️ **Note about training timeouts:** Due to Gradio's request timeout limitations, training larger models or complex configurations may fail in the web interface.
+                For long-running trainings, use the command line interface instead:
+
+                ```bash
+                uv run emobench train --model <model_name> --dataset <dataset_name>
+                ```
+
+                The web interface works best for quick training runs on smaller models like BERT-tiny and BERT-mini.
+                """)
 
                 with gr.Row():
                     # Column 1: Inputs and training matrix
@@ -797,52 +1463,235 @@ def create_interface():
                     outputs=[report_progress, report_output, report_markdown],
                 )
 
-            # Tab 6: Dashboard
-            with gr.TabItem("📈 Dashboard"):
-                gr.Markdown("### Results Dashboard")
+            # Tab 6: Analysis
+            with gr.TabItem("📊 Analysis"):
+                gr.Markdown("### Results Analysis")
 
-                # Load data and create dashboard components
-                results_df = load_benchmark_results()
-                summary = create_dashboard_summary(results_df)
-                scatter_fig = create_scatter_plot(results_df)
+                # Refresh button at the top
+                refresh_btn = gr.Button("🔄 Refresh Analysis", variant="secondary")
 
+                # Create updatable components with initial data
+                initial_results = load_benchmark_results()
+                initial_summary = create_dashboard_summary(initial_results)
+                initial_scatter_fig = create_scatter_plot(initial_results)
+                initial_accuracy_fig = create_accuracy_by_dataset_chart(initial_results)
+                initial_f1_fig = create_f1_by_dataset_chart(initial_results)
+                initial_latency_breakdown_fig = create_latency_breakdown_chart(initial_results)
+                initial_ttft_fig = create_ttft_chart(initial_results)
+                initial_throughput_accuracy_fig = create_throughput_accuracy_scatter(
+                    initial_results
+                )
+                initial_throughput_comparison_fig = create_throughput_comparison_chart(
+                    initial_results
+                )
+                initial_efficiency_bubble_fig = create_efficiency_bubble_chart(initial_results)
+                initial_latency_distribution_fig = create_latency_distribution_chart(
+                    initial_results
+                )
+
+                initial_summary_md = f"""## 📊 Results Summary
+
+- **Total Models:** {initial_summary["total_models"]}
+- **Total Datasets:** {initial_summary["total_datasets"]}
+- **Total Results:** {initial_summary["total_results"]}
+- **Last Updated:** {initial_summary["last_updated"]}
+- **Top Model:** {initial_summary["top_model"]}
+
+*💡 Use the **Reports** tab for data export and detailed analysis*"""
+
+                summary_text = gr.Markdown(value=initial_summary_md)
+
+                # Row 1: Accuracy and Latency charts
                 with gr.Row():
                     with gr.Column():
-                        gr.Markdown("## 📊 Results Summary")
-                        gr.Markdown(f"""
-                        - **Total Models:** {summary["total_models"]}
-                        - **Total Datasets:** {summary["total_datasets"]}
-                        - **Total Results:** {summary["total_results"]}
-                        - **Last Updated:** {summary["last_updated"]}
-                        - **Top Model:** {summary["top_model"]}
-                        """)
+                        gr.Markdown("#### Model Accuracy by Dataset")
+                        accuracy_by_dataset_plot = gr.Plot(value=initial_accuracy_fig)
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Model Accuracy by Dataset** shows how well each model performs on different datasets.
 
-                        gr.Markdown(
-                            "*💡 Use the **Reports** tab for data export and detailed analysis*"
-                        )
-
+                            - **Accuracy**: The percentage of predictions that are correct (higher is better)
+                            - **Grouped bars**: Each model shows separate bars for different datasets
+                            - **Color coding**: Different colors represent different datasets
+                            - **Comparison**: Use this to see which models work best on specific types of data
+                            """)
                     with gr.Column():
-                        gr.Markdown("## 📈 Performance Visualization")
-                        gr.Plot(scatter_fig)
+                        gr.Markdown("#### Latency Breakdown per Model")
+                        latency_breakdown_plot = gr.Plot(value=initial_latency_breakdown_fig)
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Latency Breakdown per Model** shows the speed characteristics of each model across different latency metrics.
 
-                if not results_df.empty:
-                    gr.Markdown("## 📋 Detailed Results")
-                    # Remove internal columns from display
-                    display_df = results_df.drop(
-                        columns=["timestamp", "_source_file"], errors="ignore"
-                    )
-                    gr.Dataframe(display_df, label="Benchmark Results Table")
-                else:
+                            - **Mean**: Average response time across all predictions
+                            - **Median**: Middle value when response times are sorted (less affected by outliers)
+                            - **P95**: 95th percentile - 95% of responses are faster than this time
+                            - **P99**: 99th percentile - 99% of responses are faster than this time
+                            - **Lower values**: Indicate faster model inference (better for real-time applications)
+                            """)
+
+                # Row 1.5: F1 Score and TTFT charts
+                with gr.Row():
+                    with gr.Column():
+                        gr.Markdown("#### Model F1 Score by Dataset")
+                        f1_by_dataset_plot = gr.Plot(value=initial_f1_fig)
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Model F1 Score by Dataset** measures the balance between precision and recall for each model.
+
+                            - **F1 Score**: Harmonic mean of precision and recall (ranges from 0 to 1)
+                            - **Precision**: Of all positive predictions, what percentage were actually correct
+                            - **Recall**: Of all actual positive cases, what percentage were correctly identified
+                            - **F1 Formula**: 2 × (precision × recall) / (precision + recall)
+                            - **Higher values**: Indicate better balance between avoiding false positives and false negatives
+                            """)
+                    with gr.Column():
+                        gr.Markdown("#### Time to First Token (TTFT)")
+                        ttft_plot = gr.Plot(value=initial_ttft_fig)
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Time to First Token (TTFT)** measures how quickly each model starts generating responses.
+
+                            - **TTFT**: Time from when a request is made until the first token is generated
+                            - **Lower values**: Indicate faster initial response times (better user experience)
+                            - **Important for**: Streaming responses, interactive applications, and perceived responsiveness
+                            - **Different from total latency**: TTFT is just the "time to start", not the complete response time
+                            """)
+
+                # Row 2: Throughput and Efficiency charts
+                with gr.Row():
+                    with gr.Column():
+                        gr.Markdown("#### Throughput vs. Accuracy Scatter")
+                        throughput_accuracy_scatter_plot = gr.Plot(
+                            value=initial_throughput_accuracy_fig
+                        )
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Throughput vs. Accuracy Scatter** shows the trade-off between speed and quality for each model.
+
+                            - **X-axis (Throughput)**: Number of samples processed per second (higher = faster)
+                            - **Y-axis (Accuracy)**: Percentage of correct predictions (higher = more accurate)
+                            - **Color coding**: Different colors represent different models
+                            - **Shape coding**: Different shapes represent different datasets
+                            - **Trade-off analysis**: Helps identify models that balance speed and accuracy well
+                            """)
+                    with gr.Column():
+                        gr.Markdown("#### Model Efficiency Chart")
+                        efficiency_bubble_plot = gr.Plot(value=initial_efficiency_bubble_fig)
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Model Efficiency Chart** combines three key performance dimensions in one visualization.
+
+                            - **X-axis (Latency)**: Mean response time in milliseconds (lower = faster)
+                            - **Y-axis (Accuracy)**: Percentage of correct predictions (higher = better)
+                            - **Bubble size (Throughput)**: Larger bubbles = higher throughput (more samples/second)
+                            - **Color coding**: Different colors represent different models
+                            - **Multi-dimensional analysis**: Identifies the "sweet spot" balancing speed, quality, and capacity
+                            """)
+
+                # Row 3: Throughput comparison and latency distribution
+                with gr.Row():
+                    with gr.Column():
+                        gr.Markdown("#### Comparative Throughput Analysis")
+                        throughput_comparison_plot = gr.Plot(
+                            value=initial_throughput_comparison_fig
+                        )
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Comparative Throughput Analysis** shows the processing capacity of each model across datasets.
+
+                            - **Throughput**: Number of samples/inferences processed per second
+                            - **Horizontal bars**: Each model shows separate bars for different datasets
+                            - **Higher values**: Indicate models that can handle more requests per second
+                            - **Color coding**: Different colors represent different datasets
+                            - **Capacity planning**: Use this to understand which models can handle higher loads
+                            """)
+                    with gr.Column():
+                        gr.Markdown("#### Latency Distribution per Model")
+                        latency_distribution_plot = gr.Plot(value=initial_latency_distribution_fig)
+                        with gr.Accordion("📖 What does this chart show?", open=False):
+                            gr.Markdown("""
+                            **Latency Distribution per Model** shows the range and consistency of response times.
+
+                            - **Median to P95**: Solid lines show the range from typical response time to 95th percentile
+                            - **P95 to P99**: Dashed lines show the range from 95th to 99th percentile (tail latency)
+                            - **Markers**: Diamond (median), square (P95), triangle (P99) show key percentiles
+                            - **Shorter ranges**: Indicate more consistent/predictable response times
+                            - **Tail latency analysis**: Helps identify models with reliable performance under load
+                            """)
+
+                # Row 4: Original scatter plot
+                gr.Markdown("#### Model Performance: Accuracy vs Latency")
+                scatter_plot = gr.Plot(value=initial_scatter_fig)
+                with gr.Accordion("📖 What does this chart show?", open=False):
                     gr.Markdown("""
-                    ### No Results Available
+                    **Model Performance: Accuracy vs Latency** shows the fundamental trade-off between quality and speed.
 
-                    Run some benchmarks first to see results here:
-
-                    1. Go to the **Benchmark** tab
-                    2. Select models and datasets
-                    3. Click **Start Benchmark**
-                    4. Return here to view results
+                    - **X-axis (Accuracy)**: Percentage of correct predictions (higher = better quality)
+                    - **Y-axis (Latency)**: Mean response time in milliseconds (lower = faster)
+                    - **Individual runs**: Small dots show results from individual benchmark runs
+                    - **Model means**: Large diamonds show average performance across all runs per model
+                    - **Decision making**: Use this to choose models based on your accuracy vs. speed requirements
                     """)
+
+                if not initial_results.empty:
+                    display_df = format_benchmark_results_table(initial_results)
+                    results_table = gr.Dataframe(value=display_df, label="Benchmark Results Table")
+                    no_data_message = gr.Markdown(visible=False)
+                else:
+                    results_table = gr.Dataframe(visible=False)
+                    no_data_message = gr.Markdown(
+                        value="""
+### No Results Available
+
+Run some benchmarks first to see results here:
+
+1. Go to the **Benchmark** tab
+2. Select models and datasets
+3. Click **Start Benchmark**
+4. Click **🔄 Refresh Analysis** to view results
+"""
+                    )
+
+                # Set up refresh functionality
+                refresh_btn.click(
+                    fn=update_dashboard,
+                    inputs=[],
+                    outputs=[
+                        summary_text,
+                        scatter_plot,
+                        accuracy_by_dataset_plot,
+                        f1_by_dataset_plot,
+                        latency_breakdown_plot,
+                        ttft_plot,
+                        throughput_accuracy_scatter_plot,
+                        throughput_comparison_plot,
+                        efficiency_bubble_plot,
+                        latency_distribution_plot,
+                        results_table,
+                        no_data_message,
+                    ],
+                )
+
+                # Initial load
+                refresh_btn.click(
+                    fn=update_dashboard,
+                    inputs=[],
+                    outputs=[
+                        summary_text,
+                        scatter_plot,
+                        accuracy_by_dataset_plot,
+                        f1_by_dataset_plot,
+                        latency_breakdown_plot,
+                        ttft_plot,
+                        throughput_accuracy_scatter_plot,
+                        throughput_comparison_plot,
+                        efficiency_bubble_plot,
+                        latency_distribution_plot,
+                        results_table,
+                        no_data_message,
+                    ],
+                    queue=False,  # Don't queue the initial load
+                )
 
     return interface
 

@@ -65,6 +65,12 @@ class BenchmarkRunner:
             model_results = []
 
             for dataset in datasets:
+                # Check if checkpoint exists before attempting evaluation
+                checkpoint_path = self._find_checkpoint_path(model, dataset)
+                if checkpoint_path is None:
+                    logger.info(f"Skipping {model} on {dataset}: No checkpoint found")
+                    continue  # Skip this combination entirely
+
                 try:
                     # Load model and evaluate
                     result = self._evaluate_single_model(model, dataset, metrics)
@@ -84,7 +90,9 @@ class BenchmarkRunner:
                     result["throughput_samples_per_sec"] = None
                     model_results.append(result)
 
-            results[model] = model_results
+            # Only add model to results if it has at least one successful evaluation
+            if model_results:
+                results[model] = model_results
 
         logger.info(f"Benchmark completed for {len(models)} models")
         return results
@@ -135,6 +143,9 @@ class BenchmarkRunner:
             text_field = "content"
         elif dataset_name == "imdb":
             test_dataset = load_dataset("stanfordnlp/imdb", split="test")
+            text_field = "text"
+        elif dataset_name == "yelp":
+            test_dataset = load_dataset("yelp_polarity", split="test")
             text_field = "text"
         else:
             raise ValueError(f"Unsupported dataset: {dataset_name}")
